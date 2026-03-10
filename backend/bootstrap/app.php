@@ -16,6 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.token' => \App\Http\Middleware\AuthenticateApiToken::class,
             'role' => \App\Http\Middleware\EnsureRole::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'process_login.php',
+            'register-admin',
+            'register_admin.php',
+            'api/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

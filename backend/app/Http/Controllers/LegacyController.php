@@ -33,6 +33,11 @@ class LegacyController extends Controller
         return $this->renderLegacy('logout.php');
     }
 
+    public function registerAdmin(): Response
+    {
+        return $this->renderLegacy('register_admin.php');
+    }
+
     public function view(string $page): Response
     {
         $allowed = [
