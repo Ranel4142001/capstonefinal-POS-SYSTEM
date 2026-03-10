@@ -1,0 +1,99 @@
+body {
+    background: linear-gradient(135deg, #004d40, #00897b, #80cbc4);
+    /* A clean, calming gradient */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* A modern, readable font */
+}
+
+.login-container {
+    background-color: #ffffff;
+    padding: 3rem;
+    /* More padding for a premium feel */
+    border-radius: 20px;
+    /* Smoother, modern corners */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    /* A more pronounced, soft shadow */
+    max-width: 450px;
+    width: 100%;
+    transition: transform 0.3s ease-in-out;
+    /* Subtle animation */
+}
+
+.login-container:hover {
+    transform: translateY(-5px);
+    /* Lift the form on hover */
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    /* Increased margin for better spacing */
+}
+
+.login-header h2 {
+    font-weight: 700;
+    /* Bolder title */
+    color: #333;
+    /* Darker, more solid color */
+    letter-spacing: 1px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    /* Rounded input fields */
+    padding: 1rem 1.25rem;
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #00897b;
+    box-shadow: 0 0 0 0.2rem rgba(0, 137, 123, 0.25);
+}
+
+.btn-primary {
+    background-color: #00897b;
+    /* Coordinated button color */
+    border-color: #00897b;
+    font-weight: 700;
+    padding: 0.75rem 0;
+    border-radius: 10px;
+    transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+    background-color: #00695c;
+    border-color: #00695c;
+    transform: translateY(-2px);
+    /* Subtle lift on button hover */
+}
+
+.alert {
+    border-radius: 10px;
+    font-weight: 500;
+    text-align: center;
+    margin-top: -1.5rem;
+    margin-bottom: 2rem;
+}
+
+.input-group-text {
+    background-color: transparent;
+    border-radius: 10px;
+    border-left: none;
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+}
+
+.input-group-text:hover {
+    color: #00897b;
+}

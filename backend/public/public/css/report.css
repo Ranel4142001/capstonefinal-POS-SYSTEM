@@ -1,0 +1,172 @@
+/* --- Print Styles for Report (Standard Printer) --- */
+@media print {
+
+    /* Hide elements not needed in the report */
+    .no-print,
+    .dashboard-wrapper .sidebar,
+    /* Hide the sidebar */
+    .navbar.custom-navbar-top,
+    /* Hide the top navbar */
+    .btn,
+    /* Hide all buttons */
+    .modal,
+    /* Hide modals */
+    .overlay,
+    /* Hide overlay if active */
+    .pagination,
+    /* Hide pagination controls */
+    .sidebar-toggle-btn {
+        /* Hide any toggle buttons */
+        display: none !important;
+    }
+
+    /* Ensure main content takes full width and is visible */
+    .dashboard-wrapper {
+        display: block !important;
+        /* Ensure wrapper is visible */
+        margin-left: 0 !important;
+        /* Override sidebar margin */
+        padding: 0 !important;
+        /* Remove any padding from wrapper */
+    }
+
+    .main-content {
+        display: block !important;
+        /* Ensure main content is visible */
+        margin-left: 0 !important;
+        /* Ensure main content is full width */
+        padding: 0 !important;
+        /* Remove all padding from main-content */
+        width: 100% !important;
+        float: none !important;
+        /* Prevent floating issues */
+        position: static !important;
+        /* Prevent positioning issues */
+    }
+
+    .container-fluid.dashboard-page-content {
+        display: block !important;
+        /* Ensure content area is visible */
+        margin: 0 !important;
+        /* Remove any margins */
+        padding: 0 1cm !important;
+        /* Standard print margins (1cm from left/right) */
+        width: auto !important;
+        /* Let content determine width */
+    }
+
+    /* Target the H2 directly inside dashboard-page-content */
+    .dashboard-page-content h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 20pt;
+        color: #000;
+    }
+
+    /* Specific styles for the report content */
+    body {
+        font-family: 'Times New Roman', serif;
+        /* A more formal font for reports */
+        font-size: 11pt;
+        color: #000;
+        -webkit-print-color-adjust: exact;
+        /* Ensure background colors print */
+        print-color-adjust: exact;
+    }
+
+    /* Print-specific header for the report */
+    .print-header {
+        text-align: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ccc;
+        display: block;
+        /* Ensure it's visible in print */
+    }
+
+    .print-header h3 {
+        margin: 0;
+        font-size: 16pt;
+    }
+
+    .print-header p {
+        margin: 2px 0;
+        font-size: 10pt;
+    }
+
+    /* Table styling for print */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    th,
+    td {
+        border: 1px solid #ddd;
+        /* Add borders for report clarity */
+        padding: 8px;
+        text-align: left;
+    }
+
+    thead {
+        background-color: #f2f2f2;
+        display: table-header-group;
+        /* Repeat table headers on new pages */
+    }
+
+    th {
+        color: #333;
+        font-weight: bold;
+    }
+
+    /* Summary boxes should print clearly */
+    .summary-box {
+        background-color: #e9ecef !important;
+        /* Light background for print */
+        color: #000 !important;
+        /* Black text */
+        border: 1px solid #dee2e6;
+        padding: 15px;
+        /* Add padding for better look */
+        margin-bottom: 15px;
+        page-break-inside: avoid;
+        /* Keep summary boxes together */
+    }
+
+    /* Ensure card elements don't get messed up */
+    .card {
+        border: 1px solid #dee2e6;
+        margin-bottom: 15px;
+        box-shadow: none !important;
+        /* Remove shadows for print */
+        page-break-inside: avoid;
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        color: #343a40;
+    }
+
+    /* Page breaks for large tables */
+    table {
+        page-break-after: auto;
+    }
+
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    tfoot {
+        display: table-footer-group;
+        /* Repeat table footers on new pages */
+    }
+
+    /* Force no print margins/headers/footers from the browser on report pages */
+    @page {
+        margin: 1cm !important;
+        /* Standard margins for a report */
+    }
+}
