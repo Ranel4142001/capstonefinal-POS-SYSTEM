@@ -145,23 +145,21 @@ function handlePostRequest($pdo) {
     $cost_price = $product['cost_price'] ?? 0;
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO products (barcode, name, category_id, price, cost_price, stock_quantity) 
-                               VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([
-            $product['barcode'],
-            $product['name'],
-            $product['category_id'],
-            $product['price'],
-            $product['cost_price'],
-            $product['stock_quantity']
+        $createdProduct = \App\Models\Product::query()->create([
+            'barcode' => $product['barcode'],
+            'name' => $product['name'],
+            'category_id' => $product['category_id'],
+            'price' => $product['price'],
+            'cost_price' => $cost_price,
+            'stock_quantity' => $product['stock_quantity'],
         ]);
 
         echo json_encode([
             'success' => true,
             'message' => 'Product created successfully.',
-            'product_id' => $pdo->lastInsertId()
+            'product_id' => $createdProduct->id
         ]);
-    } catch (PDOException $e) {
+    } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Error creating product: ' . $e->getMessage()]);
     }
@@ -188,21 +186,26 @@ function handlePutRequest($pdo) {
     }
 
     try {
-        $stmt = $pdo->prepare("UPDATE products 
-                               SET name=?, category_id=?, price=?, cost_price=?, stock_quantity=?, barcode=? 
-                               WHERE id=?");
-        $stmt->execute([
-            $data['name'],
-            $data['category_id'],
-            $data['price'],
-            $data['cost_price'],
-            $data['stock_quantity'],
-            $data['barcode'],
-            $data['id']
+        $product = \App\Models\Product::query()->find($data['id']);
+
+        if (!$product) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Product not found.']);
+            return;
+        }
+
+        $product->fill([
+            'name' => $data['name'],
+            'category_id' => $data['category_id'],
+            'price' => $data['price'],
+            'cost_price' => $data['cost_price'],
+            'stock_quantity' => $data['stock_quantity'],
+            'barcode' => $data['barcode'],
         ]);
+        $product->save();
 
         echo json_encode(['success' => true, 'message' => 'Product updated successfully.']);
-    } catch (PDOException $e) {
+    } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Database error during update: ' . $e->getMessage()]);
     }
@@ -219,16 +222,17 @@ function handleDeleteRequest($pdo) {
     }
 
     try {
-        $stmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
-        $stmt->execute([$product_id]);
+        $product = \App\Models\Product::query()->find($product_id);
 
-        if ($stmt->rowCount()) {
-            echo json_encode(['success' => true, 'message' => 'Product deleted successfully.']);
-        } else {
+        if (!$product) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Product not found.']);
+            return;
         }
-    } catch (PDOException $e) {
+
+        $product->delete();
+        echo json_encode(['success' => true, 'message' => 'Product deleted successfully.']);
+    } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Database error during deletion: ' . $e->getMessage()]);
     }

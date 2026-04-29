@@ -25,6 +25,7 @@
             echo '<div class="alert alert-success" role="alert">' . htmlspecialchars($_SESSION['logout_success']) . '</div>';
             unset($_SESSION['logout_success']);
         }
+
         ?>
 
         <form action="<?= LEGACY_BASE_URL ?>/process_login.php" method="POST">
@@ -43,6 +44,9 @@
             </div>
             <button type="submit" class="btn btn-primary w-100">Login</button>
         </form>
+        <div class="mt-3 text-center">
+            <a href="<?= LEGACY_BASE_URL ?>/register-admin">Create Admin Account</a>
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?= LEGACY_BASE_URL ?>/public/js/login.js"></script>

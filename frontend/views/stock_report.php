@@ -254,7 +254,7 @@ $conn = null;
 <?php
         // Close layout (footer, scripts, closing tags)
         include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
-        <script src="<?= LEGACY_BASE_URL ?>/public/js/stock_report.js"></script>
+        <script src="<?= LEGACY_BASE_URL ?>/public/js/stock_report.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/stock_report.js') ?>"></script>
 </body>
 </html>
 

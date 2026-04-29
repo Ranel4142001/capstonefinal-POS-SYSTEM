@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/bootstrap.php';
 
         include LEGACY_BASE_PATH . '/includes/auth_check.php';
+require_role(['admin']);
         // Include common layout start (head, header, sidebar, navbar open tags)
         include LEGACY_BASE_PATH . '/includes/layout_start.php';
 ?>
@@ -132,10 +133,29 @@ require_once __DIR__ . '/../includes/bootstrap.php';
         </div>
     </div>
 
+    <div class="modal fade" id="deleteSupplierModal" tabindex="-1" aria-labelledby="deleteSupplierModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteSupplierModalLabel">Delete Supplier</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete supplier <strong id="deleteSupplierName">this supplier</strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteSupplierBtn">Delete Supplier</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
         <?php
         // Close layout (footer, scripts, closing tags)
         include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
-        <script src="<?= LEGACY_BASE_URL ?>/public/js/suppliers_script.js"></script>
+        <script src="<?= LEGACY_BASE_URL ?>/public/js/suppliers_script.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/suppliers_script.js') ?>"></script>
+
 
 
 

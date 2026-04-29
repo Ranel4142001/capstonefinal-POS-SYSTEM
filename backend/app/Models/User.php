@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TracksAuditTrail;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, TracksAuditTrail;
 
     /**
      * The attributes that are mass assignable.
@@ -59,5 +60,26 @@ class User extends Authenticatable
     public function apiTokens(): HasMany
     {
         return $this->hasMany(ApiToken::class);
+    }
+
+    public function getAuditTrackedAttributes(): array
+    {
+        return [
+            'username',
+            'email',
+            'role',
+        ];
+    }
+
+    public function getAuditType(): string
+    {
+        return 'User';
+    }
+
+    public function getAuditDisplayName(): string
+    {
+        $username = trim((string) $this->username);
+
+        return $username !== '' ? "User '{$username}'" : 'User #' . $this->getKey();
     }
 }

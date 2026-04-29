@@ -5,39 +5,34 @@
 // =========================================================
 
 /**
- * Displays a success or error message using a temporary Bootstrap alert.
+ * Displays a message using the global Bootstrap modal.
  * This replaces the native JavaScript alert().
  * @param {string} message The text to display.
  * @param {string} type The Bootstrap alert type ('success', 'danger', 'warning', etc.).
  */
 function displayMessage(message, type = 'success') {
-    const container = document.querySelector('.dashboard-page-content');
-    if (!container) return;
+    if (typeof window.showMessage === 'function') {
+        window.showMessage(message, type);
+        return;
+    }
 
-    // Remove any existing dynamic alerts first
+    const container = document.querySelector('.dashboard-page-content');
+    if (!container) {
+        console.warn('Unable to render customer message:', message);
+        return;
+    }
+
     const existingAlert = document.querySelector('.dynamic-alert');
     if (existingAlert) {
         existingAlert.remove();
     }
 
-    const alertHTML = `
+    container.insertAdjacentHTML('afterbegin', `
         <div class="alert alert-${type} alert-dismissible fade show dynamic-alert" role="alert">
             ${message}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    `;
-    // Insert the new alert at the top of the main content area
-    container.insertAdjacentHTML('afterbegin', alertHTML);
-
-    // Auto-dismiss after 5 seconds
-    const newAlert = document.querySelector('.dynamic-alert');
-    if (newAlert) {
-        setTimeout(() => {
-            // Get the Bootstrap Alert instance or create a new one to close it
-            const bootstrapAlert = bootstrap.Alert.getInstance(newAlert) || new bootstrap.Alert(newAlert);
-            bootstrapAlert.close();
-        }, 5000);
-    }
+    `);
 }
 
 

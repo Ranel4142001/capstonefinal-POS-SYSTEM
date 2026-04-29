@@ -155,7 +155,7 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 
 <?php // Close layout (footer, scripts, closing tags)
     include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
-<script src="<?= LEGACY_BASE_URL ?>/public/js/customers_script.js"></script>
+<script src="<?= LEGACY_BASE_URL ?>/public/js/customers_script.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/customers_script.js') ?>"></script>
 </body>
 </html>
 

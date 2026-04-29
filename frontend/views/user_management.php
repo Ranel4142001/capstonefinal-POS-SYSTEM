@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/bootstrap.php';
 // views/user_management.php
 include LEGACY_BASE_PATH . '/includes/auth_check.php';
+require_role(['admin']);
 include LEGACY_BASE_PATH . '/includes/layout_start.php';
 include LEGACY_BASE_PATH . '/includes/functions.php';
 
@@ -170,7 +171,7 @@ $allowed_roles = ['admin', 'staff', 'cashier'];
 <div class="overlay" id="overlay"></div>
 
 <?php include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
-<script src="<?= LEGACY_BASE_URL ?>/public/js/user_management.js"></script>
+<script src="<?= LEGACY_BASE_URL ?>/public/js/user_management.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/user_management.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const alertBox = document.querySelector('.alert');
@@ -181,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
 

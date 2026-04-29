@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$backendPath = __DIR__ . DIRECTORY_SEPARATOR . 'backend';
+
+if (!is_dir($backendPath)) {
+    fwrite(STDERR, "Backend directory not found.\n");
+    exit(1);
+}
+
+chdir($backendPath);
+
+require $backendPath . DIRECTORY_SEPARATOR . 'artisan';

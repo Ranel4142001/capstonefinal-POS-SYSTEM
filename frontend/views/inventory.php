@@ -7,7 +7,8 @@ require_once __DIR__ . '/../includes/bootstrap.php';
         include LEGACY_BASE_PATH . '/config/db.php';
 
         
-         $isAdmin = ($_SESSION['role'] === 'admin');
+        $userRole = $_SESSION['role'] ?? '';
+        $isAdmin = ($userRole === 'admin');
 
 // Fetch categories for the filter dropdown
 $categories = [];
@@ -150,7 +151,25 @@ try {
         </form>
       </div>
     </div>
-  </div>
+</div>
+</div>
+
+<div class="modal fade" id="deleteProductModal" tabindex="-1" aria-labelledby="deleteProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteProductModalLabel">Delete Product</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <strong id="deleteProductName">this product</strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteProductBtn">Delete Product</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -169,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
     form.addEventListener('submit', function (e) {
       if (role !== 'admin') {
         e.preventDefault();
-        alert('You do not have permission to edit this product.');
+        showMessage('You do not have permission to edit this product.', 'warning');
       }
     });
   }
@@ -178,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
    <?php // Close layout (footer, scripts, closing tags)
     include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
-    <script src="<?= LEGACY_BASE_URL ?>/public/js/inventory_script.js"></script>
+    <script src="<?= LEGACY_BASE_URL ?>/public/js/inventory_script.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/inventory_script.js') ?>"></script>
 
 
 

@@ -43,6 +43,7 @@ class LegacyController extends Controller
         $allowed = [
             'add_product.php',
             'add_stocks.php',
+            'audit_trail.php',
             'categories.php',
             'customers.php',
             'dashboard.php',
@@ -53,6 +54,7 @@ class LegacyController extends Controller
             'sales_analytics.php',
             'stock_report.php',
             'suppliers.php',
+            'transaction_history.php',
             'user_management.php',
         ];
 
@@ -66,12 +68,14 @@ class LegacyController extends Controller
     public function api(string $endpoint): Response
     {
         $allowed = [
+            'audit_logs.php',
             'categories.php',
             'complete_sale.php',
             'customers.php',
             'dashboard.php',
             'inventory.php',
             'products.php',
+            'sales_analytics.php',
             'sales_reports.php',
             'stocks.php',
             'suppliers.php',

@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const editProductPrice = document.getElementById('editProductPrice');
     const editProductStock = document.getElementById('editProductStock');
     const editProductBarcode = document.getElementById('editProductBarcode');
+    const deleteProductModalElement = document.getElementById('deleteProductModal');
+    const deleteProductModal = deleteProductModalElement ? new bootstrap.Modal(deleteProductModalElement) : null;
+    const deleteProductName = document.getElementById('deleteProductName');
+    const confirmDeleteProductBtn = document.getElementById('confirmDeleteProductBtn');
+    let productToDeleteId = null;
 
     // Function to fetch products from the API and update the table
     async function fetchProducts() {
@@ -167,11 +172,15 @@ document.addEventListener('DOMContentLoaded', function () {
         // Attach event listeners for delete buttons
         document.querySelectorAll('.delete-product-btn').forEach(button => {
             button.addEventListener('click', function () {
-                const productId = this.dataset.id;
-                const productName = this.closest('tr').querySelector('td:nth-child(2)').textContent;
-                if (confirm(`Are you sure you want to delete "${productName}"?`)) {
-                    deleteProduct(productId);
+                if (!deleteProductModal) {
+                    return;
                 }
+
+                productToDeleteId = this.dataset.id;
+                if (deleteProductName) {
+                    deleteProductName.textContent = this.closest('tr').querySelector('td:nth-child(2)').textContent;
+                }
+                deleteProductModal.show();
             });
         });
     }
@@ -225,15 +234,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (data.success) {
-                alert('Product updated successfully!');
+                showMessage('Product updated successfully!', 'success');
                 editProductModal.hide(); // Hide the modal on success
                 fetchProducts(); // Refresh the product list to show updated data
             } else {
-                alert('Error updating product: ' + (data.message || 'Unknown error.'));
+                showMessage('Error updating product: ' + (data.message || 'Unknown error.'), 'danger');
             }
         } catch (error) {
             console.error('Error updating product:', error);
-            alert('Failed to update product due to a network or server error.');
+            showMessage('Failed to update product due to a network or server error.', 'danger');
         }
     });
 
@@ -250,17 +259,43 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (data.success) {
-                alert('Product deleted successfully!');
+                showMessage('Product deleted successfully!', 'success');
                 // Re-fetch products to update the table
                 fetchProducts();
             } else {
-                alert('Error deleting product: ' + (data.message || 'Unknown error.'));
+                showMessage('Error deleting product: ' + (data.message || 'Unknown error.'), 'danger');
             }
         } catch (error) {
             console.error('Error deleting product:', error);
-            alert('Failed to delete product due to a network or server error.');
+            showMessage('Failed to delete product due to a network or server error.', 'danger');
         }
     }
+
+    confirmDeleteProductBtn?.addEventListener('click', async function () {
+        if (!productToDeleteId) {
+            return;
+        }
+
+        confirmDeleteProductBtn.disabled = true;
+
+        try {
+            await deleteProduct(productToDeleteId);
+        } finally {
+            productToDeleteId = null;
+            confirmDeleteProductBtn.disabled = false;
+            deleteProductModal?.hide();
+        }
+    });
+
+    deleteProductModalElement?.addEventListener('hidden.bs.modal', function () {
+        productToDeleteId = null;
+        if (deleteProductName) {
+            deleteProductName.textContent = 'this product';
+        }
+        if (confirmDeleteProductBtn) {
+            confirmDeleteProductBtn.disabled = false;
+        }
+    });
 
     // Helper for HTML escaping (basic)
     function htmlspecialchars(str) {

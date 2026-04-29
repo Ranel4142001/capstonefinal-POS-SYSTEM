@@ -61,18 +61,16 @@ switch ($action) {
         }
 
         try {
-            // Prepare and execute statement to insert a new customer
-            $stmt = $conn->prepare("INSERT INTO customers (first_name, last_name, contact_number, email, address) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssss", $first_name, $last_name, $contact_number, $email, $address);
+            \App\Models\Customer::query()->create([
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'contact_number' => $contact_number !== '' ? $contact_number : null,
+                'email' => $email !== '' ? $email : null,
+                'address' => $address !== '' ? $address : null,
+            ]);
 
-            if ($stmt->execute()) {
-                echo json_encode(['status' => 'success', 'message' => 'Customer added successfully!']);
-            } else {
-                error_log("Error adding customer: " . $stmt->error); // Log MySQLi error
-                echo json_encode(['status' => 'error', 'message' => 'Error adding customer.']);
-            }
-            $stmt->close();
-        } catch (mysqli_sql_exception $e) {
+            echo json_encode(['status' => 'success', 'message' => 'Customer added successfully!']);
+        } catch (Throwable $e) {
             error_log("Database error adding customer: " . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'Database error during add operation.']);
         }
@@ -94,18 +92,24 @@ switch ($action) {
         }
 
         try {
-            // Prepare and execute statement to update an existing customer
-            $stmt = $conn->prepare("UPDATE customers SET first_name = ?, last_name = ?, contact_number = ?, email = ?, address = ? WHERE customer_id = ?");
-            $stmt->bind_param("sssssi", $first_name, $last_name, $contact_number, $email, $address, $customer_id);
+            $customer = \App\Models\Customer::query()->find($customer_id);
 
-            if ($stmt->execute()) {
-                echo json_encode(['status' => 'success', 'message' => 'Customer updated successfully!']);
-            } else {
-                error_log("Error updating customer: " . $stmt->error);
-                echo json_encode(['status' => 'error', 'message' => 'Error updating customer.']);
+            if (!$customer) {
+                echo json_encode(['status' => 'error', 'message' => 'Customer not found.']);
+                break;
             }
-            $stmt->close();
-        } catch (mysqli_sql_exception $e) {
+
+            $customer->fill([
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'contact_number' => $contact_number !== '' ? $contact_number : null,
+                'email' => $email !== '' ? $email : null,
+                'address' => $address !== '' ? $address : null,
+            ]);
+            $customer->save();
+
+            echo json_encode(['status' => 'success', 'message' => 'Customer updated successfully!']);
+        } catch (Throwable $e) {
             error_log("Database error updating customer: " . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'Database error during update operation.']);
         }
@@ -122,18 +126,16 @@ switch ($action) {
         }
 
         try {
-            // Prepare and execute statement to delete a customer
-            $stmt = $conn->prepare("DELETE FROM customers WHERE customer_id = ?");
-            $stmt->bind_param("i", $customer_id);
+            $customer = \App\Models\Customer::query()->find($customer_id);
 
-            if ($stmt->execute()) {
-                echo json_encode(['status' => 'success', 'message' => 'Customer deleted successfully!']);
-            } else {
-                error_log("Error deleting customer: " . $stmt->error);
-                echo json_encode(['status' => 'error', 'message' => 'Error deleting customer.']);
+            if (!$customer) {
+                echo json_encode(['status' => 'error', 'message' => 'Customer not found.']);
+                break;
             }
-            $stmt->close();
-        } catch (mysqli_sql_exception $e) {
+
+            $customer->delete();
+            echo json_encode(['status' => 'success', 'message' => 'Customer deleted successfully!']);
+        } catch (Throwable $e) {
             error_log("Database error deleting customer: " . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'Database error during delete operation.']);
         }

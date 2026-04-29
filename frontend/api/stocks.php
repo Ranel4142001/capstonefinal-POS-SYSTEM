@@ -3,156 +3,329 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 // api/stocks.php
 // This API endpoint handles operations related to product stock management.
 
-error_reporting(E_ALL);     // Report all PHP errors
-ini_set('display_errors', 1); // Display errors directly in the browser
-header('Content-Type: application/json'); // Keep this header to indicate JSON intent
-header('Content-Type: application/json'); // Ensure the response is JSON
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+header('Content-Type: application/json');
 
-// Include necessary files for database connection and input sanitization.
-require_once LEGACY_BASE_PATH . '/includes/functions.php'; // Contains get_db_connection() and sanitize_input()
+require_once LEGACY_BASE_PATH . '/includes/functions.php';
 
-// Start session to access user_id for logging stock changes.
-if (session_status() == PHP_SESSION_NONE) {
-    }
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    http_response_code(403);
+    echo json_encode(['status' => 'error', 'message' => 'Forbidden.']);
+    exit();
+}
 
-// Initialize database connection.
 try {
     $conn = get_db_connection();
 } catch (mysqli_sql_exception $e) {
-    // Log the error and send a generic message to the client.
-    error_log("Database connection error in api/stocks.php: " . $e->getMessage());
+    error_log('Database connection error in api/stocks.php: ' . $e->getMessage());
     echo json_encode(['status' => 'error', 'message' => 'Database connection failed.']);
     exit();
 }
 
-// Determine the requested action.
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 switch ($action) {
     case 'list_products':
-        // Action to fetch all products for display in the form dropdown and inventory table.
-        $products = [];
-        try {
-            // SQL query to join products with categories to get category names.
-            $sql_products = "
-                SELECT
-                    p.id,
-                    p.name,
-                    p.stock_quantity,
-                    p.price,
-                    p.barcode,
-                    c.name AS category_name
-                FROM
-                    products p
-                LEFT JOIN
-                    categories c ON p.category_id = c.id
-                ORDER BY
-                    p.name ASC";
-
-            $result_products = $conn->query($sql_products);
-
-            if ($result_products) {
-                while ($row = $result_products->fetch_assoc()) {
-                    $products[] = $row;
-                }
-                $result_products->free();
-                echo json_encode(['status' => 'success', 'data' => $products]);
-            } else {
-                echo json_encode(['status' => 'error', 'message' => 'Error fetching products: ' . $conn->error]);
-            }
-        } catch (mysqli_sql_exception $e) {
-            error_log("Database error fetching products: " . $e->getMessage());
-            echo json_encode(['status' => 'error', 'message' => 'Database error fetching products.']);
-        }
+        listProducts($conn);
         break;
 
     case 'add_stock':
-        // Action to add stock to an existing product and log the transaction.
-        $product_id = sanitize_input($_POST['product_id'] ?? '');
-        $quantity_to_add = sanitize_input($_POST['quantity_to_add'] ?? '');
-        $user_id = $_SESSION['user_id'] ?? null; // Get the ID of the logged-in user
+        addStock($conn);
+        break;
 
-        // Basic validation
-        if (empty($product_id) || empty($quantity_to_add)) {
-            echo json_encode(['status' => 'error', 'message' => 'Both Product and Quantity to Add are required.']);
-            break;
-        } elseif (!is_numeric($product_id) || $product_id <= 0) {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid Product selected.']);
-            break;
-        } elseif (!is_numeric($quantity_to_add) || $quantity_to_add <= 0) {
-            echo json_encode(['status' => 'error', 'message' => 'Quantity to Add must be a positive number.']);
-            break;
-        } elseif (!$user_id) {
-            echo json_encode(['status' => 'error', 'message' => 'User not logged in. Cannot log stock change.']);
-            break;
-        } else {
-            try {
-                $conn->begin_transaction(); // Start a database transaction for atomicity.
+    case 'edit_stock':
+        editStock($conn);
+        break;
 
-                // Step 1: Update products table - increase stock_quantity.
-                $stmt_update_product = $conn->prepare("UPDATE products SET stock_quantity = stock_quantity + ?, updated_at = NOW() WHERE id = ?");
-                if ($stmt_update_product) {
-                    $stmt_update_product->bind_param("ii", $quantity_to_add, $product_id);
-
-                    if ($stmt_update_product->execute()) {
-                        // Step 2: Get the NEW current stock quantity AFTER the update.
-                        $stmt_get_new_stock = $conn->prepare("SELECT stock_quantity FROM products WHERE id = ?");
-                        $stmt_get_new_stock->bind_param("i", $product_id);
-                        $stmt_get_new_stock->execute();
-                        $result_new_stock = $stmt_get_new_stock->get_result();
-                        $new_stock_after_add = $result_new_stock->fetch_assoc()['stock_quantity'];
-                        $stmt_get_new_stock->close();
-
-                        // Step 3: Log the stock change to stock_history table.
-                        $stmt_log_stock_history = $conn->prepare(
-                            "INSERT INTO stock_history (product_id, quantity_change, current_quantity_after_change, change_type, change_date, user_id, description)
-                            VALUES (?, ?, ?, ?, NOW(), ?, ?)"
-                        );
-
-                        $change_type = 'purchase_in'; // Or 'adjustment_in', 'restock', etc.
-                        $description = "Stock added manually (via Add Stock form) for product ID: $product_id";
-
-                        // Bind parameters for stock_history. 'i' for int, 's' for string.
-                        $stmt_log_stock_history->bind_param(
-                            "iiisss",
-                            $product_id,
-                            $quantity_to_add, // Positive for addition
-                            $new_stock_after_add,
-                            $change_type,
-                            $user_id, // User ID from session
-                            $description
-                        );
-                        $stmt_log_stock_history->execute();
-                        $stmt_log_stock_history->close();
-
-                        $conn->commit(); // Commit the transaction if all steps are successful.
-                        echo json_encode(['status' => 'success', 'message' => 'Stock successfully added to product!']);
-
-                    } else {
-                        $conn->rollback(); // Rollback if product update fails.
-                        echo json_encode(['status' => 'error', 'message' => 'Error adding stock: ' . $stmt_update_product->error]);
-                    }
-                    $stmt_update_product->close();
-                } else {
-                    $conn->rollback(); // Rollback if statement preparation fails.
-                    echo json_encode(['status' => 'error', 'message' => 'Failed to prepare stock update query: ' . $conn->error]);
-                }
-            } catch (mysqli_sql_exception $e) {
-                $conn->rollback(); // Rollback for any other database exceptions.
-                error_log("Database error during add stock operation: " . $e->getMessage());
-                echo json_encode(['status' => 'error', 'message' => 'Database error during stock addition.']);
-            }
-        }
+    case 'delete_product':
+        deleteProduct($conn);
         break;
 
     default:
-        // Default case for invalid or missing action.
         echo json_encode(['status' => 'error', 'message' => 'Invalid or missing action.']);
         break;
 }
 
-// Close the database connection.
 $conn->close();
+
+function listProducts(mysqli $conn): void
+{
+    $products = [];
+
+    try {
+        $sql_products = "
+            SELECT
+                p.id,
+                p.name,
+                p.stock_quantity,
+                p.price,
+                p.barcode,
+                c.name AS category_name
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            ORDER BY p.name ASC";
+
+        $result_products = $conn->query($sql_products);
+
+        if ($result_products) {
+            while ($row = $result_products->fetch_assoc()) {
+                $products[] = $row;
+            }
+            $result_products->free();
+            echo json_encode(['status' => 'success', 'data' => $products]);
+            return;
+        }
+
+        echo json_encode(['status' => 'error', 'message' => 'Error fetching products: ' . $conn->error]);
+    } catch (mysqli_sql_exception $e) {
+        error_log('Database error fetching products: ' . $e->getMessage());
+        echo json_encode(['status' => 'error', 'message' => 'Database error fetching products.']);
+    }
+}
+
+function addStock(mysqli $conn): void
+{
+    $product_id = filter_var($_POST['product_id'] ?? null, FILTER_VALIDATE_INT);
+    $quantity_to_add = filter_var($_POST['quantity_to_add'] ?? null, FILTER_VALIDATE_INT);
+    $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+
+    if ($product_id === false || $product_id < 1) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid product selected.']);
+        return;
+    }
+
+    if ($quantity_to_add === false || $quantity_to_add < 1) {
+        echo json_encode(['status' => 'error', 'message' => 'Quantity to Add must be a positive whole number.']);
+        return;
+    }
+
+    if (!$user_id) {
+        echo json_encode(['status' => 'error', 'message' => 'User not logged in. Cannot log stock change.']);
+        return;
+    }
+
+    try {
+        \Illuminate\Support\Facades\DB::beginTransaction();
+
+        $product = \App\Models\Product::query()
+            ->lockForUpdate()
+            ->find($product_id);
+
+        if ($product === null) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            echo json_encode(['status' => 'error', 'message' => 'Product not found.']);
+            return;
+        }
+
+        $currentStock = (int) $product->stock_quantity;
+        $newStock = $currentStock + $quantity_to_add;
+
+        $product->stock_quantity = $newStock;
+        $product->save();
+
+        logStockHistoryUsingDb(
+            $product_id,
+            $quantity_to_add,
+            $newStock,
+            'purchase_in',
+            $user_id,
+            "Stock added manually (via Add Stock form) for product ID: {$product_id}"
+        );
+
+        \Illuminate\Support\Facades\DB::commit();
+
+        echo json_encode([
+            'status' => 'success',
+            'message' => "Stock added successfully. {$product->name} stock updated from {$currentStock} to {$newStock}.",
+            'previous_stock' => $currentStock,
+            'new_stock' => $newStock,
+        ]);
+    } catch (Throwable $e) {
+        if (\Illuminate\Support\Facades\DB::transactionLevel() > 0) {
+            \Illuminate\Support\Facades\DB::rollBack();
+        }
+        error_log('Database error during add stock operation: ' . $e->getMessage());
+        echo json_encode(['status' => 'error', 'message' => 'Database error during stock addition.']);
+    }
+}
+
+function editStock(mysqli $conn): void
+{
+    $product_id = filter_var($_POST['product_id'] ?? null, FILTER_VALIDATE_INT);
+    $newStockQuantity = filter_var($_POST['stock_quantity'] ?? null, FILTER_VALIDATE_INT);
+    $user_id = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+
+    if ($product_id === false || $product_id < 1) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid product selected.']);
+        return;
+    }
+
+    if ($newStockQuantity === false || $newStockQuantity < 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Stock quantity must be zero or a positive whole number.']);
+        return;
+    }
+
+    if (!$user_id) {
+        echo json_encode(['status' => 'error', 'message' => 'User not logged in. Cannot log stock change.']);
+        return;
+    }
+
+    try {
+        \Illuminate\Support\Facades\DB::beginTransaction();
+
+        $product = \App\Models\Product::query()
+            ->lockForUpdate()
+            ->find($product_id);
+
+        if ($product === null) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            echo json_encode(['status' => 'error', 'message' => 'Product not found.']);
+            return;
+        }
+
+        $currentStock = (int) $product->stock_quantity;
+        $quantityChange = $newStockQuantity - $currentStock;
+
+        $product->stock_quantity = $newStockQuantity;
+        $product->save();
+
+        if ($quantityChange !== 0) {
+            $changeType = $quantityChange > 0 ? 'adjustment_in' : 'adjustment_out';
+            $description = $quantityChange > 0
+                ? 'Manual stock increase via Add Stocks page edit'
+                : 'Manual stock decrease via Add Stocks page edit';
+
+            logStockHistoryUsingDb(
+                $product_id,
+                $quantityChange,
+                $newStockQuantity,
+                $changeType,
+                $user_id,
+                $description
+            );
+        }
+
+        \Illuminate\Support\Facades\DB::commit();
+
+        echo json_encode([
+            'status' => 'success',
+            'message' => "Stock updated successfully. {$product->name} stock changed from {$currentStock} to {$newStockQuantity}.",
+            'previous_stock' => $currentStock,
+            'new_stock' => $newStockQuantity,
+        ]);
+    } catch (Throwable $e) {
+        if (\Illuminate\Support\Facades\DB::transactionLevel() > 0) {
+            \Illuminate\Support\Facades\DB::rollBack();
+        }
+        error_log('Database error during edit stock operation: ' . $e->getMessage());
+        echo json_encode(['status' => 'error', 'message' => 'Database error during stock update.']);
+    }
+}
+
+function deleteProduct(mysqli $conn): void
+{
+    $product_id = filter_var($_POST['product_id'] ?? null, FILTER_VALIDATE_INT);
+
+    if ($product_id === false || $product_id < 1) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid product selected.']);
+        return;
+    }
+
+    try {
+        \Illuminate\Support\Facades\DB::beginTransaction();
+
+        $product = \App\Models\Product::query()
+            ->lockForUpdate()
+            ->find($product_id);
+
+        if ($product === null) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            echo json_encode(['status' => 'error', 'message' => 'Product not found.']);
+            return;
+        }
+
+        $productName = $product->name;
+        $product->delete();
+
+        \Illuminate\Support\Facades\DB::commit();
+
+        echo json_encode([
+            'status' => 'success',
+            'message' => "Product \"{$productName}\" deleted successfully."
+        ]);
+    } catch (Throwable $e) {
+        if (\Illuminate\Support\Facades\DB::transactionLevel() > 0) {
+            \Illuminate\Support\Facades\DB::rollBack();
+        }
+        error_log('Database error during delete product operation: ' . $e->getMessage());
+
+        if ((int) $e->getCode() === 1451) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'This product cannot be deleted because it is already referenced by other records.'
+            ]);
+            return;
+        }
+
+        echo json_encode(['status' => 'error', 'message' => 'Database error during product deletion.']);
+    }
+}
+
+function getProductForUpdate(mysqli $conn, int $productId): ?array
+{
+    $stmt = $conn->prepare('SELECT id, name, stock_quantity FROM products WHERE id = ? FOR UPDATE');
+    $stmt->bind_param('i', $productId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $product = $result->fetch_assoc() ?: null;
+    $stmt->close();
+
+    return $product;
+}
+
+function logStockHistoryUsingDb(
+    int $productId,
+    int $quantityChange,
+    int $currentQuantityAfterChange,
+    string $changeType,
+    int $userId,
+    string $description
+): void {
+    \Illuminate\Support\Facades\DB::table('stock_history')->insert([
+        'product_id' => $productId,
+        'quantity_change' => $quantityChange,
+        'current_quantity_after_change' => $currentQuantityAfterChange,
+        'change_type' => $changeType,
+        'change_date' => now(),
+        'user_id' => $userId,
+        'description' => $description,
+    ]);
+}
+
+function logStockHistory(
+    mysqli $conn,
+    int $productId,
+    int $quantityChange,
+    int $currentQuantityAfterChange,
+    string $changeType,
+    int $userId,
+    string $description
+): void {
+    $stmt = $conn->prepare(
+        'INSERT INTO stock_history (product_id, quantity_change, current_quantity_after_change, change_type, change_date, user_id, description)
+        VALUES (?, ?, ?, ?, NOW(), ?, ?)'
+    );
+    $stmt->bind_param(
+        'iiisis',
+        $productId,
+        $quantityChange,
+        $currentQuantityAfterChange,
+        $changeType,
+        $userId,
+        $description
+    );
+    $stmt->execute();
+    $stmt->close();
+}
 ?>
-
-

@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/bootstrap.php';
 
         include LEGACY_BASE_PATH . '/includes/auth_check.php';
+require_role(['admin']);
         include LEGACY_BASE_PATH . '/includes/layout_start.php';
         include LEGACY_BASE_PATH . '/includes/functions.php';
         include LEGACY_BASE_PATH . '/config/db.php';
@@ -98,40 +99,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $is_admin) {
 
     // Check input errors before inserting into database
     if (empty($name_err) && empty($barcode_err) && empty($price_err) && empty($cost_price_err) && empty($stock_quantity_err) && empty($category_id_err) && empty($brand_err)) {
-        $sql = "INSERT INTO products (name, barcode, description, price, cost_price, stock_quantity, category_id, supplier_id, brand, is_active) VALUES (:name, :barcode, :description, :price, :cost_price, :stock_quantity, :category_id, :supplier_id, :brand, 1)";
+        try {
+            \App\Models\Product::query()->create([
+                'name' => $name,
+                'barcode' => !empty($barcode) ? $barcode : null,
+                'description' => !empty($description) ? $description : null,
+                'price' => $price,
+                'cost_price' => $cost_price,
+                'stock_quantity' => $stock_quantity,
+                'category_id' => $category_id,
+                'supplier_id' => $supplier_id,
+                'brand' => !empty($brand) ? $brand : null,
+                'is_active' => true,
+            ]);
 
-        if ($stmt = $pdo->prepare($sql)) {
-            $stmt->bindParam(":name", $param_name, PDO::PARAM_STR);
-            $stmt->bindParam(":barcode", $param_barcode, PDO::PARAM_STR);
-            $stmt->bindParam(":description", $param_description, PDO::PARAM_STR);
-            $stmt->bindParam(":price", $param_price);
-            $stmt->bindParam(":cost_price", $param_cost_price);
-            $stmt->bindParam(":stock_quantity", $param_stock_quantity, PDO::PARAM_INT);
-            $stmt->bindParam(":category_id", $param_category_id, PDO::PARAM_INT);
-            $stmt->bindParam(":supplier_id", $param_supplier_id, PDO::PARAM_INT);
-            $stmt->bindParam(":brand", $param_brand, PDO::PARAM_STR); // Bind new brand parameter
-
-            $param_name = $name;
-            $param_barcode = !empty($barcode) ? $barcode : NULL;
-            $param_description = !empty($description) ? $description : NULL;
-            $param_price = $price;
-            $param_cost_price = !empty($cost_price) ? $cost_price : NULL;
-            $param_stock_quantity = $stock_quantity;
-            $param_category_id = $category_id;
-            $param_supplier_id = $supplier_id; // Will be NULL if not set
-            $param_brand = !empty($brand) ? $brand : NULL; // Set brand parameter
-
-            if ($stmt->execute()) {
-                $success_message = "Product added successfully!";
-                // Clear form fields
-                $name = $barcode = $description = $price = $cost_price = $stock_quantity = $category_id = $supplier_id = $brand = "";
-            } else {
-                $error_message = "Error adding product. Please try again.";
-                error_log("Error executing product insert: " . $stmt->errorInfo()[2]);
-            }
-            unset($stmt);
+            $success_message = "Product added successfully!";
+            // Clear form fields
+            $name = $barcode = $description = $price = $cost_price = $stock_quantity = $category_id = $supplier_id = $brand = "";
+        } catch (Throwable $e) {
+            $error_message = "Error adding product. Please try again.";
+            error_log("Error creating product through add_product.php: " . $e->getMessage());
         }
-    }
+        }
     unset($pdo);
 }
 
@@ -162,17 +151,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $is_admin) {
 
                 <div class="card">
                     <div class="card-body">
-                        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" id="addProductForm" autocomplete="off">
                             <fieldset <?php echo !$is_admin ? 'disabled' : ''; ?>>
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($name); ?>" required>
-                                    <div class="invalid-feedback"><?php echo $name_err; ?></div>
+                                    <label for="barcode" class="form-label">Barcode (Optional)</label>
+                                    <input
+                                        type="text"
+                                        name="barcode"
+                                        id="barcode"
+                                        class="form-control <?php echo (!empty($barcode_err)) ? 'is-invalid' : ''; ?>"
+                                        value="<?php echo htmlspecialchars($barcode); ?>"
+                                        placeholder="Scan or type barcode"
+                                        autocomplete="off"
+                                        autofocus
+                                    >
+                                    <div class="invalid-feedback"><?php echo $barcode_err; ?></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="barcode" class="form-label">Barcode (Optional)</label>
-                                    <input type="text" name="barcode" id="barcode" class="form-control <?php echo (!empty($barcode_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($barcode); ?>">
-                                    <div class="invalid-feedback"><?php echo $barcode_err; ?></div>
+                                    <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($name); ?>" autocomplete="off" required>
+                                    <div class="invalid-feedback"><?php echo $name_err; ?></div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="brand" class="form-label">Brand (Optional)</label>
@@ -228,7 +226,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $is_admin) {
         </div>
     </div>
     <?php
+    ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const barcodeInput = document.getElementById('barcode');
+        const nameInput = document.getElementById('name');
+
+        if (!barcodeInput || barcodeInput.disabled) {
+            return;
+        }
+
+        window.setTimeout(function () {
+            if (!barcodeInput.value.trim()) {
+                barcodeInput.focus();
+                return;
+            }
+
+            if (nameInput && !nameInput.value.trim()) {
+                nameInput.focus();
+            }
+        }, 50);
+    });
+    </script>
+    <?php
         // Close layout (footer, scripts, closing tags)
         include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
+
 
 

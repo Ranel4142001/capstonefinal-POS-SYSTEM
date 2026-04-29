@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'process_login.php',
             'register-admin',
             'register_admin.php',
+            'views/add_product.php',
             'api/*',
         ]);
     })

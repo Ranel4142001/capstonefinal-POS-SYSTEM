@@ -24,6 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
     $action = $_POST['action'];
 }
 
+$adminOnlyActions = ['add', 'edit', 'delete'];
+if (in_array($action, $adminOnlyActions, true)) {
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'message' => 'Forbidden.']);
+        exit();
+    }
+}
+
 switch ($action) {
     case 'list':
         $categories = [];
@@ -59,18 +68,13 @@ switch ($action) {
         }
 
         try {
-            // Prepare and execute statement to insert a new category
-            $stmt = $conn->prepare("INSERT INTO categories (name, description) VALUES (?, ?)");
-            $stmt->bind_param("ss", $category_name, $category_description);
+            \App\Models\Category::query()->create([
+                'name' => $category_name,
+                'description' => $category_description !== '' ? $category_description : null,
+            ]);
 
-            if ($stmt->execute()) {
-                echo json_encode(['status' => 'success', 'message' => 'Category added successfully!']);
-            } else {
-                error_log("Error adding category: " . $stmt->error); // Log MySQLi error
-                echo json_encode(['status' => 'error', 'message' => 'Error adding category.']);
-            }
-            $stmt->close();
-        } catch (mysqli_sql_exception $e) {
+            echo json_encode(['status' => 'success', 'message' => 'Category added successfully!']);
+        } catch (Throwable $e) {
             error_log("Database error adding category: " . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'Database error during add operation.']);
         }
@@ -89,18 +93,21 @@ switch ($action) {
         }
 
         try {
-            // Prepare and execute statement to update an existing category
-            $stmt = $conn->prepare("UPDATE categories SET name = ?, description = ? WHERE id = ?");
-            $stmt->bind_param("ssi", $category_name, $category_description, $category_id);
+            $category = \App\Models\Category::query()->find($category_id);
 
-            if ($stmt->execute()) {
-                echo json_encode(['status' => 'success', 'message' => 'Category updated successfully!']);
-            } else {
-                error_log("Error updating category: " . $stmt->error);
-                echo json_encode(['status' => 'error', 'message' => 'Error updating category.']);
+            if (!$category) {
+                echo json_encode(['status' => 'error', 'message' => 'Category not found.']);
+                break;
             }
-            $stmt->close();
-        } catch (mysqli_sql_exception $e) {
+
+            $category->fill([
+                'name' => $category_name,
+                'description' => $category_description !== '' ? $category_description : null,
+            ]);
+            $category->save();
+
+            echo json_encode(['status' => 'success', 'message' => 'Category updated successfully!']);
+        } catch (Throwable $e) {
             error_log("Database error updating category: " . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'Database error during update operation.']);
         }
@@ -117,18 +124,16 @@ switch ($action) {
         }
 
         try {
-            // Prepare and execute statement to delete a category
-            $stmt = $conn->prepare("DELETE FROM categories WHERE id = ?");
-            $stmt->bind_param("i", $category_id);
+            $category = \App\Models\Category::query()->find($category_id);
 
-            if ($stmt->execute()) {
-                echo json_encode(['status' => 'success', 'message' => 'Category deleted successfully!']);
-            } else {
-                error_log("Error deleting category: " . $stmt->error);
-                echo json_encode(['status' => 'error', 'message' => 'Error deleting category.']);
+            if (!$category) {
+                echo json_encode(['status' => 'error', 'message' => 'Category not found.']);
+                break;
             }
-            $stmt->close();
-        } catch (mysqli_sql_exception $e) {
+
+            $category->delete();
+            echo json_encode(['status' => 'success', 'message' => 'Category deleted successfully!']);
+        } catch (Throwable $e) {
             error_log("Database error deleting category: " . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'Database error during delete operation.']);
         }

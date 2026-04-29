@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/bootstrap.php';
 
         include LEGACY_BASE_PATH . '/includes/auth_check.php';
+require_role(['admin']);
         include LEGACY_BASE_PATH . '/includes/layout_start.php';
         include LEGACY_BASE_PATH . '/includes/functions.php';
         
@@ -133,7 +134,7 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 
    <?php // Close layout (footer, scripts, closing tags)
     include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
-    <script src="<?= LEGACY_BASE_URL ?>/public/js/categories_script.js"></script>
+    <script src="<?= LEGACY_BASE_URL ?>/public/js/categories_script.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/categories_script.js') ?>"></script>
     <script>
         // Auto-hide alerts after a few seconds for better user experience.
         // This is still useful for any non-AJAX PHP messages or general page alerts.
@@ -149,6 +150,7 @@ require_once __DIR__ . '/../includes/bootstrap.php';
     </script>
 </body>
 </html>
+
 
 
 

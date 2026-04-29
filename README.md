@@ -18,9 +18,11 @@ Quick Start (Local)
 2. Configure environment
    - Copy backend/.env.example to backend/.env (already provided)
    - Update DB settings in backend/.env (DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD)
+   - Optional: set ADMIN_USERNAME / ADMIN_PASSWORD / ADMIN_EMAIL for seeding
 
 3. Migrate tables
    - php artisan migrate
+   - php artisan db:seed
 
 4. Serve the app
    - php artisan serve
@@ -31,6 +33,7 @@ Notes
 - The root route (/) loads the POS system. If you are not logged in, it redirects to /login.
 - Legacy assets are served from /public/... and live in frontend/public/ (copied to backend/public/public for serving).
 - If you need the sample data, import frontend/database/capstonefinal.sql with phpMyAdmin or MySQL CLI.
+- If there is no admin user, a setup link appears on the login page.
 
 API Authentication (Access + Refresh Tokens)
 

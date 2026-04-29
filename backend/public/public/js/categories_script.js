@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error("Error loading categories:", error);
-                alert("Error loading categories. Please try again.");
+                showMessage("Error loading categories. Please try again.", 'danger');
             });
     }
 
@@ -70,14 +70,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (addModal) addModal.hide();
                     addCategoryForm.reset();
                     loadCategories(); // Reload categories to update the table
-                    alert(data.message); // Show success message
+                    showMessage(data.message, 'success');
                 } else {
-                    alert(data.message); // Show error message
+                    showMessage(data.message, 'danger');
                 }
             })
             .catch(error => {
                 console.error("Error adding category:", error);
-                alert("Error adding category. Please check your input.");
+                showMessage("Error adding category. Please check your input.", 'danger');
             });
         });
     }
@@ -117,14 +117,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     const editModal = bootstrap.Modal.getInstance(document.getElementById('editCategoryModal'));
                     if (editModal) editModal.hide();
                     loadCategories(); // Reload categories to update the table
-                    alert(data.message); // Show success message
+                    showMessage(data.message, 'success');
                 } else {
-                    alert(data.message); // Show error message
+                    showMessage(data.message, 'danger');
                 }
             })
             .catch(error => {
                 console.error("Error updating category:", error);
-                alert("Error updating category. Please try again.");
+                showMessage("Error updating category. Please try again.", 'danger');
             });
         });
     }
@@ -159,14 +159,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteCategoryModal'));
                     if (deleteModal) deleteModal.hide();
                     loadCategories(); // Reload categories to update the table
-                    alert(data.message); // Show success message
+                    showMessage(data.message, 'success');
                 } else {
-                    alert(data.message); // Show error message
+                    showMessage(data.message, 'danger');
                 }
             })
             .catch(error => {
                 console.error("Error deleting category:", error);
-                alert("Error deleting category. Please try again.");
+                showMessage("Error deleting category. Please try again.", 'danger');
             });
         });
     }

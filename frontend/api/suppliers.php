@@ -10,6 +10,12 @@ require_once __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
 
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Forbidden.']);
+    exit;
+}
+
 global $pdo;
 
 switch ($_SERVER['REQUEST_METHOD']) {
@@ -106,8 +112,6 @@ function handleGetSuppliersRequest() {
 }
 
 function handleAddSupplierRequest() {
-    global $pdo;
-
     $data = json_decode(file_get_contents('php://input'), true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
@@ -128,34 +132,24 @@ function handleAddSupplierRequest() {
         return;
     }
 
-    $sql = "INSERT INTO suppliers (name, contact_person, phone, email, address) VALUES (:name, :contact_person, :phone, :email, :address)";
-
     try {
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':contact_person', $contact_person);
-        $stmt->bindParam(':phone', $phone);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':address', $address);
+        $supplier = \App\Models\Supplier::query()->create([
+            'name' => $name,
+            'contact_person' => $contact_person !== '' ? $contact_person : null,
+            'phone' => $phone !== '' ? $phone : null,
+            'email' => $email !== '' ? $email : null,
+            'address' => $address !== '' ? $address : null,
+        ]);
 
-        if ($stmt->execute()) {
-            echo json_encode(['success' => true, 'message' => 'Supplier added successfully!', 'id' => $pdo->lastInsertId()]);
-        } else {
-            $errorInfo = $stmt->errorInfo();
-            error_log("Error adding supplier: " . implode(" - ", $errorInfo));
-            echo json_encode(['success' => false, 'message' => 'Failed to add supplier: ' . ($errorInfo[2] ?? 'Unknown error.')]);
-            http_response_code(500);
-        }
-    } catch (PDOException $e) {
-        error_log("PDO Error adding supplier: " . $e->getMessage());
+        echo json_encode(['success' => true, 'message' => 'Supplier added successfully!', 'id' => $supplier->id]);
+    } catch (Throwable $e) {
+        error_log("Error adding supplier: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
         http_response_code(500);
     }
 }
 
 function handleUpdateSupplierRequest() {
-    global $pdo;
-
     $data = json_decode(file_get_contents('php://input'), true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
@@ -177,39 +171,33 @@ function handleUpdateSupplierRequest() {
         return;
     }
 
-    $sql = "UPDATE suppliers SET name = :name, contact_person = :contact_person, phone = :phone, email = :email, address = :address WHERE id = :id";
-
     try {
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':contact_person', $contact_person);
-        $stmt->bindParam(':phone', $phone);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':address', $address);
+        $supplier = \App\Models\Supplier::query()->find($id);
 
-        if ($stmt->execute()) {
-            if ($stmt->rowCount() > 0) {
-                echo json_encode(['success' => true, 'message' => 'Supplier updated successfully!']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'No supplier found with that ID or no changes made.']);
-            }
-        } else {
-            $errorInfo = $stmt->errorInfo();
-            error_log("Error updating supplier: " . implode(" - ", $errorInfo));
-            echo json_encode(['success' => false, 'message' => 'Failed to update supplier: ' . ($errorInfo[2] ?? 'Unknown error.')]);
-            http_response_code(500);
+        if (!$supplier) {
+            echo json_encode(['success' => false, 'message' => 'No supplier found with that ID.']);
+            http_response_code(404);
+            return;
         }
-    } catch (PDOException $e) {
-        error_log("PDO Error updating supplier: " . $e->getMessage());
+
+        $supplier->fill([
+            'name' => $name,
+            'contact_person' => $contact_person !== '' ? $contact_person : null,
+            'phone' => $phone !== '' ? $phone : null,
+            'email' => $email !== '' ? $email : null,
+            'address' => $address !== '' ? $address : null,
+        ]);
+        $supplier->save();
+
+        echo json_encode(['success' => true, 'message' => 'Supplier updated successfully!']);
+    } catch (Throwable $e) {
+        error_log("Error updating supplier: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
         http_response_code(500);
     }
 }
 
 function handleDeleteSupplierRequest() {
-    global $pdo;
-
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
     if ($id === 0) {
@@ -223,26 +211,19 @@ function handleDeleteSupplierRequest() {
         return;
     }
 
-    $sql = "DELETE FROM suppliers WHERE id = :id";
-
     try {
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $supplier = \App\Models\Supplier::query()->find($id);
 
-        if ($stmt->execute()) {
-            if ($stmt->rowCount() > 0) {
-                echo json_encode(['success' => true, 'message' => 'Supplier deleted successfully!']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'No supplier found with that ID.']);
-            }
-        } else {
-            $errorInfo = $stmt->errorInfo();
-            error_log("Error deleting supplier: " . implode(" - ", $errorInfo));
-            echo json_encode(['success' => false, 'message' => 'Failed to delete supplier: ' . ($errorInfo[2] ?? 'Unknown error.')]);
-            http_response_code(500);
+        if (!$supplier) {
+            echo json_encode(['success' => false, 'message' => 'No supplier found with that ID.']);
+            http_response_code(404);
+            return;
         }
-    } catch (PDOException $e) {
-        error_log("PDO Error deleting supplier: " . $e->getMessage());
+
+        $supplier->delete();
+        echo json_encode(['success' => true, 'message' => 'Supplier deleted successfully!']);
+    } catch (Throwable $e) {
+        error_log("Error deleting supplier: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
         http_response_code(500);
     }

@@ -74,13 +74,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (result.status === "success") {
                     addUserForm.reset();
                     await loadUsers();
-                    alert(result.message);
+                    showMessage(result.message, 'success');
                 } else {
-                    alert("Error: " + result.message);
+                    showMessage("Error: " + result.message, 'danger');
                 }
             } catch (error) {
                 console.error("Error adding user:", error);
-                alert("Error adding user. Please try again.");
+                showMessage("Error adding user. Please try again.", 'danger');
             }
         });
     }
@@ -115,13 +115,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (result.status === "success") {
                     if (editUserModal) editUserModal.hide();
                     await loadUsers();
-                    alert(result.message);
+                    showMessage(result.message, 'success');
                 } else {
-                    alert("Error: " + result.message);
+                    showMessage("Error: " + result.message, 'danger');
                 }
             } catch (error) {
                 console.error("Error editing user:", error);
-                alert("Error editing user. Please try again.");
+                showMessage("Error editing user. Please try again.", 'danger');
             }
         });
     }
@@ -154,13 +154,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (result.status === "success") {
                     if (deleteUserModal) deleteUserModal.hide();
                     await loadUsers();
-                    alert(result.message);
+                    showMessage(result.message, 'success');
                 } else {
-                    alert("Error: " + result.message);
+                    showMessage("Error: " + result.message, 'danger');
                 }
             } catch (error) {
                 console.error("Error deleting user:", error);
-                alert("Error deleting user. Please try again.");
+                showMessage("Error deleting user. Please try again.", 'danger');
             }
         });
     }

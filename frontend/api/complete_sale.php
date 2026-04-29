@@ -20,10 +20,10 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 }
 
 $cart = $data['cart'] ?? [];
-$total_amount = $data['total_amount'] ?? 0;
-$discount_amount = $data['discount_amount'] ?? 0.00;
-$tax_amount = $data['tax_amount'] ?? 0.00;
-$payment_method = $data['payment_method'] ?? 'Cash';
+$total_amount = (float)($data['total_amount'] ?? 0);
+$discount_amount = (float)($data['discount_amount'] ?? 0.00);
+$tax_amount = (float)($data['tax_amount'] ?? 0.00);
+$payment_method = trim((string)($data['payment_method'] ?? 'Cash'));
 $customer_id = $data['customer_id'] ?? null;
 
 if (empty($cart)) {
@@ -31,15 +31,32 @@ if (empty($cart)) {
     exit();
 }
 
-// Ensure $pdo is available from db.php
-global $pdo;
+$cash_received = (float)($data['cash_received'] ?? 0.00);
+$change_due = (float)($data['change_due'] ?? 0.00);
+$allowed_payment_methods = ['Cash', 'Credit Card', 'GCash'];
 
-$cash_received = $data['cash_received'] ?? 0.00;
-$change_due = $data['change_due'] ?? 0.00; // This should now be coming from JS
+if (!in_array($payment_method, $allowed_payment_methods, true)) {
+    echo json_encode(['success' => false, 'message' => 'Invalid payment method selected.']);
+    exit();
+}
+
+if ($cash_received <= 0) {
+    echo json_encode(['success' => false, 'message' => 'Payment amount must be greater than zero.']);
+    exit();
+}
+
+if ($cash_received + 0.00001 < $total_amount) {
+    echo json_encode(['success' => false, 'message' => 'Payment amount must cover the sale total.']);
+    exit();
+}
+
+if ($payment_method !== 'Cash') {
+    $change_due = 0.00;
+}
 
 
 try {
-    $pdo->beginTransaction(); // Start a transaction
+    \Illuminate\Support\Facades\DB::beginTransaction();
 
     // 1. Insert into sales table
     $cashier_id = $_SESSION['user_id'] ?? null;
@@ -58,84 +75,68 @@ try {
     error_log("DEBUG: change_due = " . $change_due);
     // --- END DEBUGGING LINES ---
 
-    $stmt_sale = $pdo->prepare(
-        "INSERT INTO sales (sale_date, total_amount, discount_amount, tax_amount, payment_method, cashier_id, customer_id, cash_received, change_due, status)
-        VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    );
-    $stmt_sale->execute([
-        $total_amount,
-        $discount_amount,
-        $tax_amount,
-        $payment_method,
-        $cashier_id,
-        $customer_id,
-        $cash_received,
-        $change_due,
-        'completed'
+    $sale = \App\Models\Sale::query()->create([
+        'sale_date' => now(),
+        'total_amount' => $total_amount,
+        'discount_amount' => $discount_amount,
+        'tax_amount' => $tax_amount,
+        'payment_method' => $payment_method,
+        'cashier_id' => $cashier_id,
+        'customer_id' => $customer_id,
+        'cash_received' => $cash_received,
+        'change_due' => $change_due,
+        'status' => 'completed',
     ]);
-    $sale_id = $pdo->lastInsertId();
+    $sale_id = $sale->id;
 
     if (!$sale_id) {
         throw new Exception("Failed to create sale record.");
     }
 
     // 2. Insert into sale_items table and update product stock, and log stock history
-    $stmt_sale_item = $pdo->prepare(
-        "INSERT INTO sale_items (sale_id, product_id, quantity, price_at_sale, subtotal)
-        VALUES (?, ?, ?, ?, ?)"
-    );
-    $stmt_update_stock = $pdo->prepare(
-        "UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ? AND stock_quantity >= ?"
-    );
-    // Prepare statement to get the current stock quantity after update
-    $stmt_get_current_stock = $pdo->prepare(
-        "SELECT stock_quantity FROM products WHERE id = ?"
-    );
-    // Prepare statement to log stock history
-    $stmt_log_stock_history = $pdo->prepare(
-        "INSERT INTO stock_history (product_id, quantity_change, current_quantity_after_change, change_type, change_date, user_id, description)
-        VALUES (?, ?, ?, ?, NOW(), ?, ?)"
-    );
-
     foreach ($cart as $item) {
-        $product_id = $item['id'];
-        $quantity_sold = $item['quantity']; // Renamed for clarity: quantity sold
-        $price_at_sale = $item['price'];
+        $product_id = (int) $item['id'];
+        $quantity_sold = (int) $item['quantity'];
+        $price_at_sale = (float) $item['price'];
         $subtotal = $price_at_sale * $quantity_sold;
 
-        // Insert into sale_items
-        $stmt_sale_item->execute([$sale_id, $product_id, $quantity_sold, $price_at_sale, $subtotal]);
+        $product = \App\Models\Product::query()
+            ->lockForUpdate()
+            ->find($product_id);
 
-        // Update product stock
-        $stmt_update_stock->execute([$quantity_sold, $product_id, $quantity_sold]);
-
-        if ($stmt_update_stock->rowCount() === 0) {
+        if (!$product || $product->stock_quantity < $quantity_sold) {
             throw new Exception("Insufficient stock or product not found for product ID: $product_id. Transaction aborted.");
         }
 
-        // Get the current stock quantity AFTER the update
-        $stmt_get_current_stock->execute([$product_id]);
-        $current_stock_after_sale = $stmt_get_current_stock->fetchColumn();
+        \App\Models\SaleItem::query()->create([
+            'sale_id' => $sale_id,
+            'product_id' => $product_id,
+            'quantity' => $quantity_sold,
+            'price_at_sale' => $price_at_sale,
+            'subtotal' => $subtotal,
+        ]);
 
-        // Log the stock change in stock_history
-        $quantity_change_for_log = -$quantity_sold; // Negative for stock reduction
-        $change_type = 'sale_out';
-        $description = "Sale (Order ID: $sale_id)";
-        $stmt_log_stock_history->execute([
-            $product_id,
-            $quantity_change_for_log,
-            $current_stock_after_sale,
-            $change_type,
-            $cashier_id,
-            $description
+        $product->stock_quantity = (int) $product->stock_quantity - $quantity_sold;
+        $product->save();
+
+        \Illuminate\Support\Facades\DB::table('stock_history')->insert([
+            'product_id' => $product_id,
+            'quantity_change' => -$quantity_sold,
+            'current_quantity_after_change' => $product->stock_quantity,
+            'change_type' => 'sale_out',
+            'change_date' => now(),
+            'user_id' => $cashier_id,
+            'description' => "Sale (Order ID: $sale_id)",
         ]);
     }
 
-    $pdo->commit();
+    \Illuminate\Support\Facades\DB::commit();
     echo json_encode(['success' => true, 'message' => 'Sale completed successfully!', 'sale_id' => $sale_id]);
 
 } catch (Exception $e) {
-    $pdo->rollBack();
+    if (\Illuminate\Support\Facades\DB::transactionLevel() > 0) {
+        \Illuminate\Support\Facades\DB::rollBack();
+    }
     error_log("Sale completion error: " . $e->getMessage());
     $user_message = "An error occurred while completing the sale.";
     if (strpos($e->getMessage(), "Insufficient stock") !== false) {

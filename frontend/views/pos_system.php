@@ -19,11 +19,19 @@ $is_admin = ($_SESSION['role'] === 'admin');
                     <h5 class="mb-0">Product Scan / Find</h5>
                 </div>
                 <div class="card-body">
-                    <div class="input-group mb-3">
-                        <input type="text" id="barcodeInput" class="form-control form-control-lg"
-                               placeholder="Scan or type barcode" aria-label="Barcode Input" autofocus>
+                    <div class="input-group mb-2">
+                        <input
+                            type="text"
+                            id="barcodeInput"
+                            class="form-control form-control-lg"
+                            placeholder="Scan barcode or type product name"
+                            aria-label="Barcode Input"
+                            autocomplete="off"
+                            autofocus
+                        >
                         <button class="btn btn-primary" type="button" id="lookupProductBtn">Find</button>
                     </div>
+                    <div id="productLookupResults" class="list-group d-none" aria-live="polite"></div>
                 </div>
             </div>
 
@@ -52,7 +60,7 @@ $is_admin = ($_SESSION['role'] === 'admin');
                     </div>
                 </div>
                 <div class="card-footer text-end">
-                    <h4 class="mb-2">Total: <span id="cartTotal">₱ 0.00</span></h4>
+                    <h4 class="mb-2">Total: <span id="cartTotal">PHP 0.00</span></h4>
                     <button class="btn btn-success me-2" id="completeSaleBtn">Complete Sale</button>
                     <button class="btn btn-danger" id="clearCartBtn">Clear Cart</button>
                 </div>
@@ -81,10 +89,19 @@ $is_admin = ($_SESSION['role'] === 'admin');
                             <option value="GCash">GCash</option>
                         </select>
                     </div>
-                    <div id="cashPaymentSection" class="mb-3">
-                        <label for="cashReceived" class="form-label">Cash Received</label>
-                        <input type="number" class="form-control" id="cashReceived" placeholder="Enter cash received">
-                        <div class="mt-2">Change Due: <span id="changeDue">₱ 0.00</span></div>
+                    <div id="paymentAmountSection" class="mb-3">
+                        <label for="cashReceived" class="form-label" id="paymentAmountLabel">Cash Received</label>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="cashReceived"
+                            placeholder="Enter cash received"
+                            min="0"
+                            step="0.01"
+                            inputmode="decimal"
+                        >
+                        <div id="paymentAmountHelpText" class="form-text">Enter the amount received from the customer before completing the sale.</div>
+                        <div id="changeDueWrapper" class="mt-2">Change Due: <span id="changeDue">PHP 0.00</span></div>
                     </div>
                 </div>
             </div>
@@ -186,6 +203,24 @@ $is_admin = ($_SESSION['role'] === 'admin');
     </div>
 </div>
 
+<div class="modal fade" id="posConfirmationModal" tabindex="-1" aria-labelledby="posConfirmationModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="posConfirmationModalTitle">Confirm Action</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="posConfirmationModalBody">
+                Are you sure you want to continue?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="posConfirmationModalCancelBtn" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="posConfirmationModalConfirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="receipt-template" style="display: none;">
     <div>
         <h3>MITZIKIKAY GENERAL MERCHANDISE</h3>
@@ -221,7 +256,7 @@ $is_admin = ($_SESSION['role'] === 'admin');
     </div>
     <div>
         <p>Payment Method: <span id="receipt-payment-method"></span></p>
-        <p id="receipt-cash-received-row">Cash Received: <span id="receipt-cash-received"></span></p>
+        <p id="receipt-cash-received-row"><span id="receipt-payment-amount-label">Cash Received</span>: <span id="receipt-cash-received"></span></p>
         <p id="receipt-change-due-row">Change: <span id="receipt-change-due"></span></p>
     </div>
     <hr>
@@ -234,7 +269,4 @@ $is_admin = ($_SESSION['role'] === 'admin');
 <?php // Close layout (footer, scripts, closing tags)
 include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="<?= LEGACY_BASE_URL ?>/public/js/pos_script.js"></script>
-
-
-
+<script src="<?= LEGACY_BASE_URL ?>/public/js/pos_script.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/pos_script.js') ?>"></script>

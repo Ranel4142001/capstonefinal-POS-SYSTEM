@@ -13,50 +13,42 @@ $base_url_path = LEGACY_BASE_URL; // Base URL for legacy routes
         <!-- Dashboard -->
         <li>
             <a href="<?= $base_url_path; ?>/views/dashboard.php" class="sidebar-link">
-                <i class="fas fa-home"></i> Dashboard Home
+                <i class="fas fa-home"></i> Dashboard
             </a>
         </li>
 
-        <!-- Transaction -->
+        <!-- Point of Sale -->
         <li>
             <a href="<?= $base_url_path; ?>/views/pos_system.php" class="sidebar-link">
-                <i class="fas fa-cash-register"></i> Transaction Interface
+                <i class="fas fa-cash-register"></i> Point of Sale
             </a>
         </li>
 
-        <!-- Inventory Control -->
-        <li class="sidebar-dropdown">
-            <a href="#inventoryControlSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="sidebar-link dropdown-toggle">
-                <i class="fas fa-warehouse"></i> Inventory Control
+        <li>
+            <a href="<?= $base_url_path; ?>/views/transaction_history.php" class="sidebar-link">
+                <i class="fas fa-receipt"></i> Transaction History
             </a>
-            <ul class="collapse list-unstyled" id="inventoryControlSubmenu">
+        </li>
+
+        <!-- Inventory Management -->
+        <li class="sidebar-dropdown">
+            <a href="#inventoryManagementSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="sidebar-link dropdown-toggle">
+                <i class="fas fa-warehouse"></i> Inventory Management
+            </a>
+            <ul class="collapse list-unstyled" id="inventoryManagementSubmenu">
                 <li>
-                    <a href="<?= $base_url_path; ?>/views/add_stocks.php" class="sidebar-link submenu-link">
-                        <i class="fas fa-boxes"></i> Add Stocks
-                    </a>
-                </li>
-                <li>
-                    <a href="<?= $base_url_path; ?>/views/add_product.php" class="sidebar-link submenu-link">
-                        <i class="fas fa-plus-square"></i> Add Product
+                    <a href="<?= $base_url_path; ?>/views/inventory.php" class="sidebar-link submenu-link">
+                        <i class="fas fa-box-open"></i> Product List
                     </a>
                 </li>
                 <li>
                     <a href="<?= $base_url_path; ?>/views/categories.php" class="sidebar-link submenu-link">
-                        <i class="fas fa-tags"></i> Add Categories
+                        <i class="fas fa-tags"></i> Categories
                     </a>
                 </li>
-            </ul>
-        </li>
-
-        <!-- Manage Products -->
-        <li class="sidebar-dropdown">
-            <a href="#manageProductsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="sidebar-link dropdown-toggle">
-                <i class="fas fa-box-open"></i> Manage Products
-            </a>
-            <ul class="collapse list-unstyled" id="manageProductsSubmenu">
                 <li>
-                    <a href="<?= $base_url_path; ?>/views/inventory.php" class="sidebar-link submenu-link">
-                        <i class="fas fa-boxes"></i> Current Products
+                    <a href="<?= $base_url_path; ?>/views/add_stocks.php" class="sidebar-link submenu-link">
+                        <i class="fas fa-boxes"></i> Stock-In / Receive Stock
                     </a>
                 </li>
             </ul>
@@ -64,32 +56,29 @@ $base_url_path = LEGACY_BASE_URL; // Base URL for legacy routes
 
         <!-- Reports -->
         <li class="menu-heading">Reports</li>
-        <li class="sidebar-dropdown">
-            <a href="#salesReportsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="sidebar-link dropdown-toggle">
-                <i class="fas fa-chart-line"></i> Sales Reports
-            </a>
-            <ul class="collapse list-unstyled" id="salesReportsSubmenu">
-                <li>
-                    <a href="<?= $base_url_path; ?>/views/detailed_sales_report.php" class="sidebar-link submenu-link">
-                        <i class="fas fa-file-invoice-dollar"></i> Detailed Sales
-                    </a>
-                </li>
-                <li>
-                    <a href="<?= $base_url_path; ?>/views/sales_analytics.php" class="sidebar-link submenu-link">
-                        <i class="fas fa-chart-pie"></i> Sales Analytics
-                    </a>
-                </li>
-            </ul>
-        </li>
-
         <li>
-            <a href="<?= $base_url_path; ?>/views/stock_report.php" class="sidebar-link submenu-link">
-                <i class="fas fa-boxes"></i> Stock Reports
+            <a href="<?= $base_url_path; ?>/views/detailed_sales_report.php" class="sidebar-link">
+                <i class="fas fa-file-invoice-dollar"></i> Sales Summary Report
+            </a>
+        </li>
+        <li>
+            <a href="<?= $base_url_path; ?>/views/stock_report.php" class="sidebar-link">
+                <i class="fas fa-boxes"></i> Inventory Report
+            </a>
+        </li>
+        <li>
+            <a href="<?= $base_url_path; ?>/views/sales_analytics.php" class="sidebar-link">
+                <i class="fas fa-chart-pie"></i> Analytics
             </a>
         </li>
 
         <!-- Administration -->
         <li class="menu-heading">Administration</li>
+        <li>
+            <a href="<?= $base_url_path; ?>/views/customers.php" class="sidebar-link">
+                <i class="fas fa-user-friends"></i> Customers
+            </a>
+        </li>
         <li>
             <a href="<?= $base_url_path; ?>/views/suppliers.php" class="sidebar-link">
                 <i class="fas fa-truck"></i> Suppliers
@@ -100,11 +89,13 @@ $base_url_path = LEGACY_BASE_URL; // Base URL for legacy routes
                 <i class="fas fa-users"></i> User Management
             </a>
         </li>
-        <li>
-            <a href="<?= $base_url_path; ?>/views/customers.php" class="sidebar-link">
-                <i class="fas fa-user-friends"></i> Customers
-            </a>
-        </li>
+        <?php if (($_SESSION['role'] ?? '') === 'admin'): ?>
+            <li>
+                <a href="<?= $base_url_path; ?>/views/audit_trail.php" class="sidebar-link">
+                    <i class="fas fa-clipboard-list"></i> Audit Trail
+                </a>
+            </li>
+        <?php endif; ?>
 
         <!-- Logout -->
         <li class="menu-item-bottom">

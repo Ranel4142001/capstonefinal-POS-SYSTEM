@@ -1,38 +1,46 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Function to fetch and update dashboard data
-    function fetchDashboardData() {
-        fetch('../api/dashboard.php')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('todaySalesAmount').textContent = data.data.today_sales;
-                    document.getElementById('lowStockCount').textContent = data.data.low_stock_items;
-                    document.getElementById('totalProductsCount').textContent = data.data.total_products;
-                } else {
-                    console.error('API Error:', data.message);
-                    // Optionally, update the UI to show an error message
-                    document.getElementById('todaySalesAmount').textContent = 'Error';
-                    document.getElementById('lowStockCount').textContent = 'Error';
-                    document.getElementById('totalProductsCount').textContent = 'Error';
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-                // Optionally, update the UI to show an error message
-                document.getElementById('todaySalesAmount').textContent = 'N/A';
-                document.getElementById('lowStockCount').textContent = 'N/A';
-                document.getElementById('totalProductsCount').textContent = 'N/A';
-            });
+document.addEventListener('DOMContentLoaded', function () {
+    const todaySalesAmount = document.getElementById('todaySalesAmount');
+    const lowStockCount = document.getElementById('lowStockCount');
+    const totalProductsCount = document.getElementById('totalProductsCount');
+
+    if (!todaySalesAmount || !lowStockCount || !totalProductsCount) {
+        return;
     }
 
-    // Call the function to fetch data when the page loads
-    fetchDashboardData();
+    function setFallbackValues(value) {
+        todaySalesAmount.textContent = value;
+        lowStockCount.textContent = value;
+        totalProductsCount.textContent = value;
+    }
 
-    // Optionally, refresh data periodically (e.g., every 5 minutes)
-    // setInterval(fetchDashboardData, 300000); // 300000 ms = 5 minutes
+    async function fetchDashboardData() {
+        try {
+            const response = await fetch('../api/dashboard.php', {
+                cache: 'no-store',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.message || 'Unable to load dashboard data.');
+            }
+
+            todaySalesAmount.textContent = data.data.today_sales;
+            lowStockCount.textContent = data.data.low_stock_items;
+            totalProductsCount.textContent = data.data.total_products;
+        } catch (error) {
+            console.error('Dashboard data load failed:', error);
+            setFallbackValues('N/A');
+        }
+    }
+
+    fetchDashboardData();
 });

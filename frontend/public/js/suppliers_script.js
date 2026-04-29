@@ -23,6 +23,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const editSupplierPhone = document.getElementById('editSupplierPhone');
     const editSupplierEmail = document.getElementById('editSupplierEmail');
     const editSupplierAddress = document.getElementById('editSupplierAddress');
+    const deleteSupplierModalElement = document.getElementById('deleteSupplierModal');
+    const deleteSupplierModal = deleteSupplierModalElement ? new bootstrap.Modal(deleteSupplierModalElement) : null;
+    const deleteSupplierName = document.getElementById('deleteSupplierName');
+    const confirmDeleteSupplierBtn = document.getElementById('confirmDeleteSupplierBtn');
+    let supplierToDeleteId = null;
 
     // Function to fetch suppliers from the API and update the table
     async function fetchSuppliers() {
@@ -54,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Error fetching suppliers:', error);
             // This alert shows "Failed to load suppliers. Network error or server issue."
-            alert('Failed to load suppliers. Network error or server issue.');
+            showMessage('Failed to load suppliers. Network error or server issue.', 'danger');
             supplierTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Failed to load suppliers. Network error or server issue.</td></tr>`;
             totalSuppliers = 0;
             renderPagination();
@@ -105,11 +110,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.querySelectorAll('.delete-supplier-btn').forEach(button => {
             button.addEventListener('click', function () {
-                const supplierId = this.dataset.id;
-                const supplierName = this.closest('tr').querySelector('td:nth-child(2)').textContent;
-                if (confirm(`Are you sure you want to delete supplier "${supplierName}"?`)) {
-                    deleteSupplier(supplierId);
+                if (!deleteSupplierModal) {
+                    return;
                 }
+
+                supplierToDeleteId = this.dataset.id;
+                if (deleteSupplierName) {
+                    deleteSupplierName.textContent = this.closest('tr').querySelector('td:nth-child(2)').textContent;
+                }
+                deleteSupplierModal.show();
             });
         });
     }
@@ -178,18 +187,18 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (data.success) {
-                alert('Supplier added successfully!');
+                showMessage('Supplier added successfully!', 'success');
                 addSupplierModal.hide();
                 addSupplierForm.reset(); // Clear the form
                 currentPage = 1; // Go to first page to see the new supplier
                 fetchSuppliers();
             } else {
-                alert('Error adding supplier: ' + (data.message || 'Unknown error.'));
+                showMessage('Error adding supplier: ' + (data.message || 'Unknown error.'), 'danger');
             }
         } catch (error) {
             console.error('Error adding supplier:', error);
             // This alert shows "Failed to add supplier due to a network or server error."
-            alert('Failed to add supplier due to a network or server error.');
+            showMessage('Failed to add supplier due to a network or server error.', 'danger');
         }
     });
 
@@ -235,15 +244,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (data.success) {
-                alert('Supplier updated successfully!');
+                showMessage('Supplier updated successfully!', 'success');
                 editSupplierModal.hide();
                 fetchSuppliers();
             } else {
-                alert('Error updating supplier: ' + (data.message || 'Unknown error.'));
+                showMessage('Error updating supplier: ' + (data.message || 'Unknown error.'), 'danger');
             }
         } catch (error) {
             console.error('Error updating supplier:', error);
-            alert('Failed to update supplier due to a network or server error.');
+            showMessage('Failed to update supplier due to a network or server error.', 'danger');
         }
     });
 
@@ -260,16 +269,42 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (data.success) {
-                alert('Supplier deleted successfully!');
+                showMessage('Supplier deleted successfully!', 'success');
                 fetchSuppliers();
             } else {
-                alert('Error deleting supplier: ' + (data.message || 'Unknown error.'));
+                showMessage('Error deleting supplier: ' + (data.message || 'Unknown error.'), 'danger');
             }
         } catch (error) {
             console.error('Error deleting supplier:', error);
-            alert('Failed to delete supplier due to a network or server error.');
+            showMessage('Failed to delete supplier due to a network or server error.', 'danger');
         }
     }
+
+    confirmDeleteSupplierBtn?.addEventListener('click', async function () {
+        if (!supplierToDeleteId) {
+            return;
+        }
+
+        confirmDeleteSupplierBtn.disabled = true;
+
+        try {
+            await deleteSupplier(supplierToDeleteId);
+        } finally {
+            supplierToDeleteId = null;
+            confirmDeleteSupplierBtn.disabled = false;
+            deleteSupplierModal?.hide();
+        }
+    });
+
+    deleteSupplierModalElement?.addEventListener('hidden.bs.modal', function () {
+        supplierToDeleteId = null;
+        if (deleteSupplierName) {
+            deleteSupplierName.textContent = 'this supplier';
+        }
+        if (confirmDeleteSupplierBtn) {
+            confirmDeleteSupplierBtn.disabled = false;
+        }
+    });
 
     // Helper for HTML escaping (basic) - important for displaying fetched data safely
     function htmlspecialchars(str) {

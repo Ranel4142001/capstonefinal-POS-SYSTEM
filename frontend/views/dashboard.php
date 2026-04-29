@@ -18,7 +18,7 @@ require_once __DIR__ . '/../includes/bootstrap.php';
                 <div class="card-body">
                     <h5 class="card-title">Today's Sales</h5>
                     <p class="card-text fs-2">₱ <span id="todaySalesAmount">0.00</span></p>
-                    <a href="pos_system.php" class="btn btn-primary">Go to Sales</a>
+                    <a href="<?= LEGACY_BASE_URL ?>/views/transaction_history.php" class="btn btn-primary">Go to Sales</a>
                 </div>
             </div>
         </div>
@@ -29,7 +29,7 @@ require_once __DIR__ . '/../includes/bootstrap.php';
                 <div class="card-body">
                     <h5 class="card-title">Low Stock Items</h5>
                     <p class="card-text fs-2"><span id="lowStockCount">0</span></p>
-                    <a href="inventory.php" class="btn btn-warning">View Inventory</a>
+                    <a href="<?= LEGACY_BASE_URL ?>/views/add_stocks.php" class="btn btn-warning">Add Stock</a>
                 </div>
             </div>
         </div>
@@ -50,6 +50,6 @@ require_once __DIR__ . '/../includes/bootstrap.php';
 <?php
 // Close layout (footer, scripts, closing tags)
 include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
-<script src="<?= LEGACY_BASE_URL ?>/public/js/dashboard_script.js"></script>
+<script src="<?= LEGACY_BASE_URL ?>/public/js/dashboard_script.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/dashboard_script.js') ?>"></script>
 
 

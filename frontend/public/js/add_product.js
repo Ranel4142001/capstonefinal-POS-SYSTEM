@@ -8,12 +8,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to display alerts
     const showAlert = (message, type) => {
-        alertContainer.innerHTML = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
+        if (typeof window.showMessage === 'function') {
+            window.showMessage(message, type);
+            return;
+        }
+        if (alertContainer) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            return;
+        }
+
+        console.warn('Unable to render product message:', message);
     };
 
     // Function to clear form validation errors
@@ -48,7 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
 
         clearFormErrors();
-        alertContainer.innerHTML = '';
+        if (alertContainer) {
+            alertContainer.innerHTML = '';
+        }
         loadingSpinner.style.display = 'block';
 
         const formData = new FormData(addProductForm);

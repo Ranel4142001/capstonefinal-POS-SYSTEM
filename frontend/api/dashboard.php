@@ -1,42 +1,46 @@
 <?php
 require_once __DIR__ . '/../includes/bootstrap.php';
-// Enable error reporting for debugging
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
-// Include database connection
 require_once __DIR__ . '/../config/db.php';
 
-// Set header for JSON response
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=UTF-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 
 global $pdo;
 
 try {
-    // --- Today's Sales ---
-    // Assuming 'sales' table has 'total_amount' and 'sale_date' columns
-    // And 'sale_date' is a DATE or DATETIME column.
-    $today = date('Y-m-d');
-    $stmtSales = $pdo->prepare("SELECT SUM(total_amount) FROM sales WHERE DATE(sale_date) = :today");
-    $stmtSales->bindParam(':today', $today);
-    $stmtSales->execute();
-    $todaySales = $stmtSales->fetchColumn();
-    $todaySales = $todaySales ? $todaySales : 0.00; // Default to 0.00 if no sales
+    $lowStockThreshold = 10;
+    $todayStart = date('Y-m-d 00:00:00');
+    $tomorrowStart = date('Y-m-d 00:00:00', strtotime('+1 day'));
 
-    // --- Low Stock Items ---
-    // Assuming 'products' table has 'stock_quantity' and a 'low_stock_threshold' column (or a predefined threshold)
-    $lowStockThreshold = 10; // You can define your threshold here
-    $stmtLowStock = $pdo->prepare("SELECT COUNT(*) FROM products WHERE stock_quantity <= :threshold");
-    $stmtLowStock->bindParam(':threshold', $lowStockThreshold, PDO::PARAM_INT);
-    $stmtLowStock->execute();
-    $lowStockItems = $stmtLowStock->fetchColumn();
+    $statement = $pdo->prepare("
+        SELECT
+            COALESCE((
+                SELECT SUM(s.total_amount)
+                FROM sales s
+                WHERE s.sale_date >= :today_start
+                  AND s.sale_date < :tomorrow_start
+            ), 0) AS today_sales,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM products p
+                WHERE p.stock_quantity <= :threshold
+            ), 0) AS low_stock_items,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM products p
+            ), 0) AS total_products
+    ");
+    $statement->bindValue(':today_start', $todayStart, PDO::PARAM_STR);
+    $statement->bindValue(':tomorrow_start', $tomorrowStart, PDO::PARAM_STR);
+    $statement->bindValue(':threshold', $lowStockThreshold, PDO::PARAM_INT);
+    $statement->execute();
 
-    // --- Total Products ---
-    // Assuming 'products' table has product entries
-    $stmtTotalProducts = $pdo->prepare("SELECT COUNT(*) FROM products");
-    $stmtTotalProducts->execute();
-    $totalProducts = $stmtTotalProducts->fetchColumn();
+    $row = $statement->fetch(PDO::FETCH_ASSOC) ?: [];
+    $todaySales = (float) ($row['today_sales'] ?? 0);
+    $lowStockItems = (int) ($row['low_stock_items'] ?? 0);
+    $totalProducts = (int) ($row['total_products'] ?? 0);
 
     echo json_encode([
         'success' => true,

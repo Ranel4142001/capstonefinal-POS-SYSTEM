@@ -123,7 +123,7 @@ require_once __DIR__ . '/../includes/bootstrap.php';
         include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
 <script src="//kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 <!-- NEW: Include the specific JavaScript for detailed sales reports to handle AJAX operations -->
-<script src="<?= LEGACY_BASE_URL ?>/public/js/detailed_sales_report_script.js"></script>
+<script src="<?= LEGACY_BASE_URL ?>/public/js/detailed_sales_report_script.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/detailed_sales_report_script.js') ?>"></script>
 </body>
 </html>
 

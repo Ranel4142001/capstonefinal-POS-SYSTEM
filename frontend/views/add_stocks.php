@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/bootstrap.php';
         include LEGACY_BASE_PATH . '/includes/auth_check.php';
+require_role(['admin']);
         include LEGACY_BASE_PATH . '/includes/layout_start.php';
         include LEGACY_BASE_PATH . '/includes/functions.php';
         
@@ -87,6 +88,57 @@ require_once __DIR__ . '/../includes/bootstrap.php';
                 </div>
             </div>
 
+            <div class="modal fade" id="editStockModal" tabindex="-1" aria-labelledby="editStockModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="editStockForm">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editStockModalLabel">Edit Stock</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" id="edit_stock_product_id" name="product_id">
+
+                                <div class="mb-3">
+                                    <label for="edit_stock_product_name" class="form-label">Product</label>
+                                    <input type="text" id="edit_stock_product_name" class="form-control" readonly>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="edit_stock_quantity" class="form-label">New Total Stock</label>
+                                    <input type="number" id="edit_stock_quantity" name="stock_quantity" class="form-control" min="0" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="deleteStockModal" tabindex="-1" aria-labelledby="deleteStockModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="deleteStockForm">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteStockModalLabel">Delete Product</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" id="delete_stock_product_id" name="product_id">
+                                <p class="mb-0">Are you sure you want to delete <strong id="delete_stock_product_name"></strong>?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -95,8 +147,9 @@ require_once __DIR__ . '/../includes/bootstrap.php';
         // Close layout (footer, scripts, closing tags)
         include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
 <script src="//kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-<script src="<?= LEGACY_BASE_URL ?>/public/js/add_stocks_script.js"></script>
+<script src="<?= LEGACY_BASE_URL ?>/public/js/add_stocks_script.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/add_stocks_script.js') ?>"></script>
 </body>
 </html>
+
 
 

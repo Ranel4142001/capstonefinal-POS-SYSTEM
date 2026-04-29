@@ -8,6 +8,12 @@ header('Content-Type: application/json'); // Set header for JSON response
 // Include common utility functions (for get_db_connection and sanitize_input).
 require_once LEGACY_BASE_PATH . '/includes/functions.php';
 
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    http_response_code(403);
+    echo json_encode(['status' => 'error', 'message' => 'Forbidden.']);
+    exit();
+}
+
 // Initialize database connection.
 try {
     $conn = get_db_connection();
@@ -62,31 +68,25 @@ switch ($action) {
             break;
         }
 
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
         try {
-            $stmt_check = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-            $stmt_check->bind_param("ss", $username, $email);
-            $stmt_check->execute();
-            $stmt_check->store_result();
+            $duplicateUserExists = \App\Models\User::query()
+                ->where('username', $username)
+                ->orWhere('email', $email)
+                ->exists();
 
-            if ($stmt_check->num_rows > 0) {
+            if ($duplicateUserExists) {
                 echo json_encode(['status' => 'error', 'message' => 'Username or email already exists.']);
             } else {
-                $stmt = $conn->prepare("INSERT INTO users (username, password_hash, email, role) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("ssss", $username, $hashed_password, $email, $role);
-                $stmt->execute();
+                \App\Models\User::query()->create([
+                    'username' => $username,
+                    'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+                    'email' => $email,
+                    'role' => $role,
+                ]);
 
-                if ($stmt->affected_rows > 0) {
-                    echo json_encode(['status' => 'success', 'message' => "User '{$username}' added successfully!"]);
-                } else {
-                    error_log("Add user executed but no row inserted. Error: " . $stmt->error);
-                    echo json_encode(['status' => 'error', 'message' => 'Error adding user (no rows affected).']);
-                }
-                $stmt->close();
+                echo json_encode(['status' => 'success', 'message' => "User '{$username}' added successfully!"]);
             }
-            $stmt_check->close();
-        } catch (mysqli_sql_exception $e) {
+        } catch (Throwable $e) {
             error_log("Database error adding user: " . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'Database error during add operation.']);
         }
@@ -109,42 +109,36 @@ switch ($action) {
         }
 
         try {
-            $stmt_check = $conn->prepare("SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?");
-            $stmt_check->bind_param("ssi", $username, $email, $user_id);
-            $stmt_check->execute();
-            $stmt_check->store_result();
+            $duplicateUserExists = \App\Models\User::query()
+                ->where('id', '!=', $user_id)
+                ->where(function ($query) use ($username, $email) {
+                    $query->where('username', $username)
+                        ->orWhere('email', $email);
+                })
+                ->exists();
 
-            if ($stmt_check->num_rows > 0) {
+            if ($duplicateUserExists) {
                 echo json_encode(['status' => 'error', 'message' => 'Username or email already exists for another user.']);
             } else {
-                $sql = "UPDATE users SET username = ?, email = ?, role = ?";
-                $params = "sss";
-                $values = [$username, $email, $role];
+                $user = \App\Models\User::query()->find($user_id);
+
+                if (!$user) {
+                    echo json_encode(['status' => 'error', 'message' => 'User not found.']);
+                    break;
+                }
+
+                $user->username = $username;
+                $user->email = $email;
+                $user->role = $role;
 
                 if (!empty($password)) {
-                    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                    $sql .= ", password_hash = ?";
-                    $params .= "s";
-                    $values[] = $hashed_password;
+                    $user->password_hash = password_hash($password, PASSWORD_DEFAULT);
                 }
 
-                $sql .= " WHERE id = ?";
-                $params .= "i";
-                $values[] = $user_id;
-
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param($params, ...$values);
-
-                if ($stmt->execute()) {
-                    echo json_encode(['status' => 'success', 'message' => 'User updated successfully!']);
-                } else {
-                    error_log("Error updating user: " . $stmt->error);
-                    echo json_encode(['status' => 'error', 'message' => 'Error updating user.']);
-                }
-                $stmt->close();
+                $user->save();
+                echo json_encode(['status' => 'success', 'message' => 'User updated successfully!']);
             }
-            $stmt_check->close();
-        } catch (mysqli_sql_exception $e) {
+        } catch (Throwable $e) {
             error_log("Database error updating user: " . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'Database error during update operation.']);
         }
@@ -164,17 +158,16 @@ switch ($action) {
         }
 
         try {
-            $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
-            $stmt->bind_param("i", $user_id);
+            $user = \App\Models\User::query()->find($user_id);
 
-            if ($stmt->execute()) {
-                echo json_encode(['status' => 'success', 'message' => 'User deleted successfully!']);
-            } else {
-                error_log("Error deleting user: " . $stmt->error);
-                echo json_encode(['status' => 'error', 'message' => 'Error deleting user.']);
+            if (!$user) {
+                echo json_encode(['status' => 'error', 'message' => 'User not found.']);
+                break;
             }
-            $stmt->close();
-        } catch (mysqli_sql_exception $e) {
+
+            $user->delete();
+            echo json_encode(['status' => 'success', 'message' => 'User deleted successfully!']);
+        } catch (Throwable $e) {
             error_log("Database error deleting user: " . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'Database error during delete operation.']);
         }
