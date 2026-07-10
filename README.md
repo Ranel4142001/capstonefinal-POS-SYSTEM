@@ -1,89 +1,64 @@
 POS System with Inventory Management
-📌 Project Overview
 
-This project is a fully functional Management System developed as a final capstone project. It is designed to handle core business operations such as data management, transactions, and reporting, demonstrating practical skills in full-stack web development.
+Project Overview
 
-The system focuses on efficiency, usability, and proper database design, making it suitable for real-world use.
+This project is a POS system with inventory management. It now uses a Laravel backend while preserving the original PHP frontend logic.
 
+Project Structure
 
+- frontend/  Legacy PHP frontend (views, includes, assets, and legacy APIs)
+- backend/   Laravel backend (routes, controllers, auth tokens, migrations)
 
-🚀 Features
+Quick Start (Local)
 
-User-friendly interface
+1. Install dependencies
+   - cd backend
+   - composer install
 
-Secure authentication and role-based access
+2. Configure environment
+   - Copy backend/.env.example to backend/.env (already provided)
+   - Update DB settings in backend/.env (DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD)
+   - Optional: set ADMIN_USERNAME / ADMIN_PASSWORD / ADMIN_EMAIL for seeding
 
-CRUD operations (Create, Read, Update, Delete)
+3. Migrate tables
+   - php artisan migrate
+   - php artisan db:seed
 
-Inventory / records management
+4. Serve the app
+   - php artisan serve
+   - Open http://127.0.0.1:8000/
 
-Sales or transaction tracking
+Notes
 
-Organized and relational database structure
+- The root route (/) loads the POS system. If you are not logged in, it redirects to /login.
+- Legacy assets are served from /public/... and live in frontend/public/ (copied to backend/public/public for serving).
+- If you need the sample data, import frontend/database/capstonefinal.sql with phpMyAdmin or MySQL CLI.
+- If there is no admin user, a setup link appears on the login page.
 
+API Authentication (Access + Refresh Tokens)
 
+The Laravel backend provides token-based authentication endpoints:
 
-🛠️ Technologies Used
+- POST /api/auth/login
+  body: { "username": "...", "password": "..." }
 
-Backend: PHP / Laravel Framework
+- POST /api/auth/refresh
+  body: { "refresh_token": "..." }
 
-Frontend: HTML, CSS, JavaScript, Bootstrap
+- GET /api/auth/me
+  header: Authorization: Bearer <access_token>
 
-Database: MySQL (multiple relational tables)
+- POST /api/auth/logout
+  header: Authorization: Bearer <access_token>
 
-Server: Apache (XAMPP / Laragon)
+Role-based authorization middleware is available as `role:admin` or `role:cashier` for future API routes.
 
+Technologies Used
 
+- Backend: Laravel (PHP)
+- Frontend: HTML, CSS, JavaScript, Bootstrap
+- Database: MySQL (relational tables)
 
-🗄️ Database Design
+Purpose
 
-The system uses a MySQL relational database composed of multiple interconnected tables to ensure data consistency and efficiency. These tables manage:
-
-Users and roles
-
-Records / inventory data
-
-Transactions
-
-Customer or client information
-
-
-
-⚙️ Installation & Setup
-
-Clone the repository:
-
-git clone https://github.com/Ranel4142001/capstonefinal.git
-
-Move the project to your local server directory (e.g., htdocs or www).
-
-Import the provided SQL file into MySQL.
-
-Configure database credentials in the project configuration file.
-
-Run the project using a local server (XAMPP / Laragon).
-
-
-
-🎯 Purpose of the Project
-
-This capstone project was developed to:
-
-Apply theoretical knowledge to a real-world system
-
-Demonstrate skills in web development and MySQL database integration
-
-Showcase ability to design and implement a complete system
-
-
-
-👨‍💻 Developer
-
-Me and my Team.
-Aspiring Web Developer / Database Developer
-Willing to learn, grow, and gain industry experience
-
-📄 License
-
-This project is for academic and learning purposes.
-
+This capstone project demonstrates full-stack development skills with a practical POS system.

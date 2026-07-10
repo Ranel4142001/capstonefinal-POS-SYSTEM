@@ -1,0 +1,550 @@
+/* your_pos_project_root/public/css/style.css */
+
+/* General Body Styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    /* Light grey background */
+    color: #333;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll when sidebar slides */
+}
+
+/* Dashboard Wrapper - Flexbox for layout */
+.dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
+    /* Ensure it takes full viewport height */
+    /* REMOVED: padding-top: 56px; - This is handled by main-content now */
+}
+
+/* --- Sidebar Styling --- */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.sidebar.closed {
+    transform: translateX(-100%);
+}
+
+/* Header inside sidebar */
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px 5px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 10px;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #fff;
+    line-height: 1.2;
+}
+
+/* Close button in sidebar */
+.close-sidebar-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2em;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+/* Open button on page edge */
+.open-sidebar-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background: #2c3e50;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 1100;
+}
+
+/* Sidebar menu */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu li {
+    margin-bottom: 2px;
+}
+
+.sidebar-menu li a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #ecf0f1;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.sidebar-menu li a i {
+    margin-right: 10px;
+    font-size: 1.1em;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-menu li a:hover,
+.sidebar-menu li a.active {
+    background-color: #34495e;
+    color: #fff;
+}
+
+.sidebar-menu .menu-heading {
+    color: #bdc3c7;
+    font-size: 0.85em;
+    padding: 15px 20px 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-menu .menu-item-bottom {
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 10px;
+}
+
+/* --- Responsive --- */
+@media (min-width: 769px) {
+    .open-sidebar-btn {
+        display: none;
+    }
+
+    .sidebar.closed {
+        transform: none;
+    }
+
+    /* Always visible on desktop */
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .close-sidebar-btn {
+        display: block;
+    }
+}
+
+
+/* --- Main Content Area --- */
+.main-content {
+    flex-grow: 1;
+    /* Allows main content to fill remaining space */
+    background-color: #f8f9fa;
+    /* Slightly lighter than body background */
+    transition: margin-left 0.3s ease-in-out;
+    /* Smooth transition for content shift */
+
+    /* KEY ADJUSTMENT: This padding must match your fixed navbar's height + desired buffer */
+    padding-top: 70px;
+    /* Try adjusting this value (e.g., 60px, 65px, 75px) */
+    padding-left: 20px;
+    /* Default horizontal padding */
+    padding-right: 20px;
+    /* Default horizontal padding */
+}
+
+/* Adjustments for the Bootstrap fixed-top navbar */
+.custom-navbar-top {
+    z-index: 1030;
+    /* Ensure navbar is above sidebar if needed */
+    /* Ensure no extra vertical padding on the navbar itself, if you want it more compact */
+    padding-top: 0.5rem;
+    /* Standard Bootstrap padding */
+    padding-bottom: 0.5rem;
+    /* Standard Bootstrap padding */
+    background-color: #2c3e50;
+    /* Changed to match sidebar background */
+    color: #ecf0f1;
+    /* Added to ensure text is visible on the dark background */
+}
+
+/* Add styles for text within the navbar to ensure visibility */
+.custom-navbar-top .navbar-brand,
+.custom-navbar-top .nav-link,
+.custom-navbar-top .nav-item .text-white {
+    /* Assuming logout text is also white or needs to be */
+    color: #ecf0f1 !important;
+    /* Force light color for text */
+}
+
+.custom-navbar-top .nav-link:hover {
+    color: #1abc9c !important;
+    /* A subtle hover effect for navbar links */
+}
+
+.dashboard-page-content {
+    /* REMOVED: padding: 20px; - Main content now handles top padding */
+    /* Ensure no extra top padding/margin directly on this container */
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+    padding-bottom: 20px;
+    /* Keep bottom padding */
+    padding-left: 0;
+    /* Let .main-content handle left/right if this is full-width */
+    padding-right: 0;
+}
+
+/* Target the H2 directly inside dashboard-page-content */
+.dashboard-page-content h2 {
+    margin-top: 0;
+    /* Crucial: Remove default browser/Bootstrap top margin */
+    margin-bottom: 1.5rem;
+    /* Keep existing bottom margin for spacing to content */
+}
+
+
+/* Dashboard Cards - Responsive Grid */
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    /* Auto-fit columns */
+    gap: 25px;
+    /* Space between cards */
+    margin-top: 20px;
+}
+
+.card {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    /* Slight lift on hover */
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.3em;
+    margin-bottom: 15px;
+}
+
+.card p {
+    font-size: 2.2em;
+    font-weight: bold;
+    color: #007bff;
+    /* Blue color for values */
+    margin-bottom: 0;
+}
+
+/* --- Overlay for Mobile Sidebar --- */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent black */
+    z-index: 998;
+    /* Below sidebar, above content */
+    display: none;
+    /* Hidden by default */
+    transition: opacity 0.3s ease;
+    opacity: 0;
+}
+
+.overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* --- Responsive & Toggle States --- */
+
+/* Desktop Specific Styles (min-width: 769px) */
+@media (min-width: 769px) {
+
+    /* Sidebar hidden on desktop */
+    .sidebar.hidden {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        /* Hide scrollbar and content */
+    }
+
+    /* Main content adjusts when sidebar is hidden on desktop */
+    .main-content.sidebar-collapsed {
+        /* When sidebar is collapsed on desktop, this removes the left offset */
+        padding-left: 20px;
+        /* Just general left padding */
+    }
+
+    .main-content {
+        /* On desktop, main content starts with initial padding-left for the visible sidebar */
+        /* This calc ensures proper spacing: sidebar width + desired padding */
+        padding-left: calc(250px + 20px);
+        /* Sidebar width + 20px content padding */
+    }
+
+    .sidebar {
+        position: fixed;
+        /* Keep sidebar fixed on desktop too */
+        left: 0;
+        /* Make sure it's visible */
+        height: 100vh;
+        /* Full viewport height */
+    }
+
+    .close-sidebar-btn {
+        display: none;
+        /* Hide close button on desktop */
+    }
+
+    .overlay {
+        display: none !important;
+        /* Ensure overlay is always hidden on desktop */
+    }
+
+    /* Keep the desktop toggle button visible */
+    #sidebarToggleDesktop {
+        display: block !important;
+    }
+
+    #sidebarToggle {
+        /* Hide mobile toggle button on desktop */
+        display: none !important;
+    }
+}
+
+/* Mobile Specific Styles (max-width: 768px) */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        /* Fixed position for mobile sidebar */
+        height: 100%;
+        left: -250px;
+        /* Start off-screen to the left */
+        top: 0;
+        /* Start from the very top */
+        z-index: 9999;
+        /* Ensure it's on top of everything */
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+        /* Stronger shadow for mobile */
+    }
+
+    .sidebar.active {
+        /* When toggled open on mobile */
+        left: 0;
+    }
+
+    .close-sidebar-btn {
+        display: block;
+        /* Show the close button on mobile */
+    }
+
+    .main-content {
+        margin-left: 0;
+        /* Main content always takes full width on mobile */
+        width: 100%;
+        padding-left: 20px;
+        /* Ensure horizontal padding on mobile */
+        padding-right: 20px;
+        /* Re-evaluate padding-top for mobile if navbar collapses */
+        /* If navbar is still fixed-top and small, 70px might be okay, otherwise adjust */
+        padding-top: 70px;
+        /* Keep same as desktop for consistency, adjust if needed */
+    }
+
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+        /* Stack cards vertically on small screens */
+    }
+
+    /* Hide desktop toggle button on mobile */
+    #sidebarToggleDesktop {
+        display: none !important;
+    }
+
+    #sidebarToggle {
+        /* Show mobile toggle button on mobile */
+        display: block !important;
+    }
+}
+
+/* --- Print Styles for Report (Standard Printer) --- */
+@media print {
+
+    /* Hide elements not needed in the report */
+    .no-print,
+    .dashboard-wrapper .sidebar,
+    /* Hide the sidebar */
+    .navbar.custom-navbar-top,
+    /* Hide the top navbar */
+    .card-header .btn,
+    /* Hide buttons in card headers if any */
+    .modal,
+    /* Hide modals */
+    .overlay,
+    /* Hide overlay if active */
+    .pagination {
+        /* Hide pagination controls */
+        display: none !important;
+    }
+
+    /* Ensure main content takes full width and is visible */
+    .dashboard-wrapper {
+        display: block !important;
+        /* Ensure wrapper is visible */
+        margin-left: 0 !important;
+        /* Override sidebar margin */
+    }
+
+    .main-content {
+        display: block !important;
+        /* Ensure main content is visible */
+        margin-left: 0 !important;
+        /* Ensure main content is full width */
+        padding-top: 0 !important;
+        /* Remove top padding from fixed navbar */
+        width: 100% !important;
+    }
+
+    .container-fluid.dashboard-page-content {
+        display: block !important;
+        /* Ensure content area is visible */
+        margin-top: 0 !important;
+        padding-top: 20px !important;
+        /* Add some top padding if needed */
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    /* ... rest of your print styles ... */
+}
+
+/* Specific styles for the report content */
+body {
+    font-family: 'Times New Roman', serif;
+    /* A more formal font for reports */
+    font-size: 11pt;
+    color: #000;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 20pt;
+}
+
+/* Print-specific header for the report */
+.print-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+    display: block;
+    /* Ensure it's visible in print */
+}
+
+.print-header h3 {
+    margin: 0;
+    font-size: 16pt;
+}
+
+.print-header p {
+    margin: 2px 0;
+    font-size: 10pt;
+}
+
+/* Table styling for print */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    /* Add borders for report clarity */
+    padding: 8px;
+    text-align: left;
+}
+
+thead {
+    background-color: #f2f2f2;
+}
+
+/* Summary boxes should print clearly */
+.summary-box {
+    background-color: #e9ecef !important;
+    /* Light background for print */
+    color: #000 !important;
+    /* Black text */
+    border: 1px solid #dee2e6;
+    page-break-inside: avoid;
+    /* Keep summary boxes together */
+}
+
+/* Ensure card elements don't get messed up */
+.card {
+    border: 1px solid #dee2e6;
+    margin-bottom: 15px;
+    box-shadow: none !important;
+    /* Remove shadows for print */
+    page-break-inside: avoid;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    color: #343a40;
+}
+
+/* Page breaks for large tables */
+table {
+    page-break-after: auto;
+
+}
+
+tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+}
+
+thead {
+    display: table-header-group;
+}
+
+tfoot {
+    display: table-footer-group;
+}
+
+/* Force no print margins/headers/footers from the browser on report pages */
+@page {
+    margin: 1cm !important;
+    /* Standard margins for a report */
+}
