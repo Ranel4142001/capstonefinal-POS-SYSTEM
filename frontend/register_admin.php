@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?= LEGACY_BASE_URL ?>/public/css/bootstrap.min.css?v=<?= filemtime(LEGACY_BASE_PATH . '/public/css/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= LEGACY_BASE_URL ?>/public/css/login.css">
 </head>
 <body>

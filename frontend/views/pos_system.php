@@ -268,5 +268,4 @@ $is_admin = ($_SESSION['role'] === 'admin');
 
 <?php // Close layout (footer, scripts, closing tags)
 include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="<?= LEGACY_BASE_URL ?>/public/js/pos_script.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/pos_script.js') ?>"></script>

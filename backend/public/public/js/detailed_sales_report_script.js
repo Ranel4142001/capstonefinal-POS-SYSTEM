@@ -205,6 +205,8 @@ document.addEventListener('DOMContentLoaded', function () {
     window.printReportInNewWindow = function () {
         const printContents = document.getElementById('printableArea').innerHTML;
         const printWindow = window.open('', '_blank', 'height=800,width=800');
+        const fontAwesomeUrl = new URL('../public/css/fontawesome.min.css', window.location.href).href;
+        const bootstrapUrl = new URL('../public/css/bootstrap.min.css', window.location.href).href;
 
         printWindow.document.write('<!DOCTYPE html>');
         printWindow.document.write('<html lang="en">');
@@ -212,8 +214,8 @@ document.addEventListener('DOMContentLoaded', function () {
         printWindow.document.write('<meta charset="UTF-8">');
         printWindow.document.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
         printWindow.document.write('<title>Sales Report Print</title>');
-        printWindow.document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">');
-        printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
+        printWindow.document.write('<link rel="stylesheet" href="' + fontAwesomeUrl + '">');
+        printWindow.document.write('<link rel="stylesheet" href="' + bootstrapUrl + '">');
         printWindow.document.write('<style>');
         printWindow.document.write('@media print { .no-print { display: none !important; } }');
         printWindow.document.write('body { font-size: 10pt; } table { width: 100%; border-collapse: collapse; } table, th, td { border: 1px solid black; padding: 8px; }');

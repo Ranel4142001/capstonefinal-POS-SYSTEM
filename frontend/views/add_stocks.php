@@ -146,7 +146,6 @@ require_role(['admin']);
 <?php
         // Close layout (footer, scripts, closing tags)
         include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
-<script src="//kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 <script src="<?= LEGACY_BASE_URL ?>/public/js/add_stocks_script.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/add_stocks_script.js') ?>"></script>
 </body>
 </html>

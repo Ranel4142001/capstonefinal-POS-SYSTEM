@@ -893,5 +893,5 @@ include LEGACY_BASE_PATH . '/includes/layout_start.php';
 </div>
 
 <?php include LEGACY_BASE_PATH . '/includes/layout_end.php'; ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="<?= LEGACY_BASE_URL ?>/public/js/chart.umd.min.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/chart.umd.min.js') ?>"></script>
 <script src="<?= LEGACY_BASE_URL ?>/public/js/sales_analytics.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/sales_analytics.js') ?>"></script>

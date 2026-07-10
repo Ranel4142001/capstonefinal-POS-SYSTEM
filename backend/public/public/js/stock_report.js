@@ -3,6 +3,9 @@
 // ========================
 function printReportInNewWindow() {
     const printContents = document.getElementById('printableArea').innerHTML;
+    const styleUrl = new URL('../public/css/style.css', window.location.href).href;
+    const fontAwesomeUrl = new URL('../public/css/fontawesome.min.css', window.location.href).href;
+    const bootstrapUrl = new URL('../public/css/bootstrap.min.css', window.location.href).href;
 
     // Open a new popup window for printing
     const printWindow = window.open('', '_blank', 'height=800,width=1000');
@@ -16,9 +19,9 @@ function printReportInNewWindow() {
             <title>Stock Report Print</title>
 
             <!-- CSS Files -->
-            <link rel="stylesheet" href="../public/css/style.css">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <link rel="stylesheet" href="${styleUrl}">
+            <link rel="stylesheet" href="${fontAwesomeUrl}">
+            <link rel="stylesheet" href="${bootstrapUrl}">
 
             <style>
                 @media print {

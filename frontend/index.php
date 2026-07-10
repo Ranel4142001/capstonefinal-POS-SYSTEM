@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="<?= LEGACY_BASE_URL ?>/public/css/bootstrap.min.css?v=<?= filemtime(LEGACY_BASE_PATH . '/public/css/bootstrap.min.css') ?>">
+    <link rel="stylesheet" href="<?= LEGACY_BASE_URL ?>/public/css/fontawesome.min.css?v=<?= filemtime(LEGACY_BASE_PATH . '/public/css/fontawesome.min.css') ?>">
     <link rel="stylesheet" href="<?= LEGACY_BASE_URL ?>/public/css/login.css">
 </head>
 <body>
@@ -38,7 +38,7 @@
                 <div class="input-group">
                     <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
                     <span class="input-group-text">
-                        <i class="fa-solid fa-eye-slash" id="togglePassword"></i>
+                        <i class="fas fa-eye-slash" id="togglePassword"></i>
                     </span>
                 </div>
             </div>
@@ -48,7 +48,7 @@
             <a href="<?= LEGACY_BASE_URL ?>/register-admin">Create Admin Account</a>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?= LEGACY_BASE_URL ?>/public/js/bootstrap.bundle.min.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/bootstrap.bundle.min.js') ?>"></script>
     <script src="<?= LEGACY_BASE_URL ?>/public/js/login.js"></script>
 </body>
 </html>

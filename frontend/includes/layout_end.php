@@ -15,7 +15,7 @@
 </div>
 
 <div class="overlay" id="overlay"></div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= LEGACY_BASE_URL ?>/public/js/bootstrap.bundle.min.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/bootstrap.bundle.min.js') ?>"></script>
 <script src="<?= LEGACY_BASE_URL ?>/public/js/main.js?v=<?= filemtime(LEGACY_BASE_PATH . '/public/js/main.js') ?>"></script>
 
 
